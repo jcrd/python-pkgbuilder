@@ -50,6 +50,10 @@ b.build()
 b.install()
 ```
 
+See the [API documentation][1] for descriptions of all functions.
+
+[1]: https://jcrd.github.io/python-pkgbuilder/
+
 ## License
 
 This project is licensed under the MIT License (see [LICENSE](LICENSE)).
