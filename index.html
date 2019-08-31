@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pkgbuilder API &#8212; pkgbuilder  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pkgbuilder-api">
+<h1>pkgbuilder API<a class="headerlink" href="#pkgbuilder-api" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+<div class="section" id="module-pkgbuilder.aur">
+<span id="aur-module"></span><h2>aur module<a class="headerlink" href="#module-pkgbuilder.aur" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-aur"></span><dl class="class">
+<dt id="pkgbuilder.aur.Aur">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.aur.</code><code class="sig-name descname">Aur</code><span class="sig-paren">(</span><em class="sig-param">url='https://aur.archlinux.org'</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.Aur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper around the AUR RPC interface with caching for package info.
+See <a class="reference external" href="https://aur.archlinux.org/rpc.php">https://aur.archlinux.org/rpc.php</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> – URL providing the RPC interface, defaults to     <a class="reference external" href="https://aur.archlinux.org">https://aur.archlinux.org</a></p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.aur.Aur.get_package">
+<code class="sig-name descname">get_package</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.Aur.get_package" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an AurPackage that can be downloaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Name of the AUR package</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an AurPackage or None if name is not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.aur.Aur.info">
+<code class="sig-name descname">info</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.Aur.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get info about an AUR package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Name of the AUR package</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Package info or None if name is not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.aur.Aur.infos">
+<code class="sig-name descname">infos</code><span class="sig-paren">(</span><em class="sig-param">*names</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.Aur.infos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get info about AUR packages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>names</strong> – Positional arguments specifying package names</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionary mapping names to info</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pkgbuilder.aur.AurPackage">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.aur.</code><code class="sig-name descname">AurPackage</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">urlpath</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.AurPackage" title="Permalink to this definition">¶</a></dt>
+<dd><p>A package found on the AUR that can be downloaded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Package name</p></li>
+<li><p><strong>urlpath</strong> – URL to the package snapshot</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.aur.AurPackage.download">
+<code class="sig-name descname">download</code><span class="sig-paren">(</span><em class="sig-param">dest</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.AurPackage.download" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download and extract package snapshot to given destination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dest</strong> – Extraction destination</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pkgbuilder.builder">
+<span id="builder-module"></span><h2>builder module<a class="headerlink" href="#module-pkgbuilder.builder" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-builder"></span><dl class="class">
+<dt id="pkgbuilder.builder.Builder">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.builder.</code><code class="sig-name descname">Builder</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">pacman_conf='/etc/pacman.conf'</em>, <em class="sig-param">makepkg_conf='/etc/makepkg.conf'</em>, <em class="sig-param">builddir='/var/cache/pkgbuilder'</em>, <em class="sig-param">chrootdir='/var/lib/pkgbuilder'</em>, <em class="sig-param">localdir=None</em>, <em class="sig-param">source=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Builder" title="Permalink to this definition">¶</a></dt>
+<dd><p>A package builder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of the package to build</p></li>
+<li><p><strong>pacman_conf</strong> – Path to pacman configuration file</p></li>
+<li><p><strong>makepkg_conf</strong> – Path to makepkg configuration file</p></li>
+<li><p><strong>builddir</strong> – Path to package build directory</p></li>
+<li><p><strong>chrootdir</strong> – Path to chroot directory</p></li>
+<li><p><strong>localdir</strong> – Path to directory of local PKGBUILDs</p></li>
+<li><p><strong>source</strong> – PKGBUILD source - one of Pkgbuild.Source.Local or     Pkgbuild.Source.Aur</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.builder.Builder.build">
+<code class="sig-name descname">build</code><span class="sig-paren">(</span><em class="sig-param">rebuild=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Builder.build" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rebuild</strong> – Build packages even if they exist</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A set of paths to all built packages</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Builder.install">
+<code class="sig-name descname">install</code><span class="sig-paren">(</span><em class="sig-param">sysroot=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Builder.install" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install built packages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sysroot</strong> – An alternative system root</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pkgbuilder.builder.Manifest">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.builder.</code><code class="sig-name descname">Manifest</code><span class="sig-paren">(</span><em class="sig-param">pkgbuilddir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest" title="Permalink to this definition">¶</a></dt>
+<dd><p>The build manifest records built packages and dependencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pkgbuilddir</strong> – Path to PKGBUILD directory</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.all_packages">
+<em class="property">property </em><code class="sig-name descname">all_packages</code><a class="headerlink" href="#pkgbuilder.builder.Manifest.all_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>A set of paths to all built packages (including dependencies).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A set of paths to all built packages</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the manifest file exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><cite>True</cite> if exists, <cite>False</cite> otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.install">
+<code class="sig-name descname">install</code><span class="sig-paren">(</span><em class="sig-param">pacman_conf=None</em>, <em class="sig-param">sysroot=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.install" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install the packages in the manifest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pacman_conf</strong> – Path to pacman configuration file</p></li>
+<li><p><strong>sysroot</strong> – An alternative system root         (see pacman’s –sysroot flag)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the manifest file and populate the manifest’s packages and
+dependencies properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary with keys: timestamp, packages, dependencies</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all packages and dependencies from manifest.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the manifest file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.builder.Manifest.verify">
+<code class="sig-name descname">verify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.verify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify that the packages in the manifest exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if all packages exist, otherwise false</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pkgbuilder.chroot">
+<span id="chroot-module"></span><h2>chroot module<a class="headerlink" href="#module-pkgbuilder.chroot" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-chroot"></span><dl class="class">
+<dt id="pkgbuilder.chroot.Chroot">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.chroot.</code><code class="sig-name descname">Chroot</code><span class="sig-paren">(</span><em class="sig-param">pacman_conf</em>, <em class="sig-param">makepkg_conf</em>, <em class="sig-param">working_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mkarchroot-based chroot capable of building packages with makechrootpkg.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pacman_conf</strong> – Path to pacman configuration file</p></li>
+<li><p><strong>makepkg_conf</strong> – Path to makepkg configuration file</p></li>
+<li><p><strong>working_dir</strong> – Path to chroot directory</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the chroot exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><cite>True</cite> if exists, <cite>False</cite> otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.make">
+<code class="sig-name descname">make</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.make" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make the chroot using mkarchroot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.makepkg">
+<code class="sig-name descname">makepkg</code><span class="sig-paren">(</span><em class="sig-param">pkgbuild</em>, <em class="sig-param">deps=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.makepkg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a package in the chroot using makechrootpkg.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pkgbuild</strong> – Pkgbuild to build</p></li>
+<li><p><strong>deps</strong> – List of dependency package paths to install into chroot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>makechrootpkg return code, stdout, and stderr</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the chroot.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the chroot with <cite>pacman -Syu</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pkgbuilder.pkgbuild">
+<span id="pkgbuild-module"></span><h2>pkgbuild module<a class="headerlink" href="#module-pkgbuilder.pkgbuild" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-pkgbuild"></span><dl class="class">
+<dt id="pkgbuilder.pkgbuild.AurPkgbuild">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.pkgbuild.</code><code class="sig-name descname">AurPkgbuild</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">buildpath</em>, <em class="sig-param">aurpkg</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.AurPkgbuild" title="Permalink to this definition">¶</a></dt>
+<dd><p>An AUR-based PKGBUILD.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Package name</p></li>
+<li><p><strong>buildpath</strong> – Path to build directory</p></li>
+<li><p><strong>aurpkg</strong> – AurPackage for the given package name</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="pkgbuilder.pkgbuild.LocalPkgbuild">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.pkgbuild.</code><code class="sig-name descname">LocalPkgbuild</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">buildpath</em>, <em class="sig-param">localdir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.LocalPkgbuild" title="Permalink to this definition">¶</a></dt>
+<dd><p>A locally sourced PKGBUILD.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Package name</p></li>
+<li><p><strong>buildpath</strong> – Path to build directory</p></li>
+<li><p><strong>localdir</strong> – Path to the directory containing PKGBUILD</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.pkgbuild.</code><code class="sig-name descname">Pkgbuild</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">buildpath</em>, <em class="sig-param">sourcedir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a local or AUR-based PKGBUILD. It creates the
+directory needed to build the package.</p>
+<dl class="class">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.Source">
+<em class="property">class </em><code class="sig-name descname">Source</code><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.Source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flags for local or AUR sources.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError">
+<em class="property">exception </em><code class="sig-name descname">SourceNotFoundError</code><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError" title="Permalink to this definition">¶</a></dt>
+<dd><p>An exception raised when no source is found for the package name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.new">
+<em class="property">classmethod </em><code class="sig-name descname">new</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">builddir</em>, <em class="sig-param">localdir=None</em>, <em class="sig-param">source=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new LocalPkgbuild or AurPkgbuild.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Package name</p></li>
+<li><p><strong>builddir</strong> – Path to package build directory</p></li>
+<li><p><strong>localdir</strong> – Path to directory of local PKGBUILDs</p></li>
+<li><p><strong>source</strong> – PKGBUILD source - one of Pkgbuild.Source.Local or         Pkgbuild.Source.Aur</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError" title="pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError"><strong>SourceNotFoundError</strong></a> – Raised when no source can be found for         name</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LocalPkgbuild or AurPkgbuild</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.packagelist">
+<code class="sig-name descname">packagelist</code><span class="sig-paren">(</span><em class="sig-param">makepkg_conf=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.packagelist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of paths to packages this PKGBUILD will produce when built.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>makepkg_conf</strong> – Path to makepkg configuration file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of paths to packages</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.prepare">
+<code class="sig-name descname">prepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.prepare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare to build the package, i.e. copy or download the PKGBUILD if
+the build directory doesn’t already exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove build directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.update">
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the build directory. An existing build directory will be
+removed.  Local sources are copied and AUR sources are downloaded to
+the build directory.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pkgbuilder.utils">
+<span id="utils-module"></span><h2>utils module<a class="headerlink" href="#module-pkgbuilder.utils" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-utils"></span><dl class="class">
+<dt id="pkgbuilder.utils.CmdLogger">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.utils.</code><code class="sig-name descname">CmdLogger</code><span class="sig-paren">(</span><em class="sig-param">log</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.utils.CmdLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>A command runner capable of capturing and logging output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>log</strong> – The logger</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.utils.CmdLogger.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.utils.CmdLogger.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a command, capturing and logging its output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmd</strong> – The command to run</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The command’s exit code, a list of stdout lines, and a list         of stderr lines</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pkgbuilder.utils.cwd">
+<code class="sig-prename descclassname">pkgbuilder.utils.</code><code class="sig-name descname">cwd</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.utils.cwd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A context manager for changing the working directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – The new working directory</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">pkgbuilder</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, James Reed.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
