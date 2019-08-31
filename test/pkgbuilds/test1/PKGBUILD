@@ -1,0 +1,13 @@
+pkgname=test1
+pkgver=1
+pkgrel=1
+pkgdesc="Test single dependency"
+arch=('any')
+license=('GPL')
+depends=('test1-dep1')
+source=('test1')
+md5sums=('d8e8fca2dc0f896fd7cb4cb0031ba249')
+
+package() {
+    install -Dm644 test1 "$pkgdir/etc/pkgbuilder/test"
+}

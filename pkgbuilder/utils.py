@@ -1,0 +1,89 @@
+# This project is licensed under the MIT License.
+
+"""
+.. module:: utils
+   :synopsis: pkgbuilder utilities.
+
+.. moduleauthor:: James Reed <jcrd@tuta.io>
+"""
+
+from asyncio.subprocess import PIPE
+from contextlib import contextmanager
+import asyncio
+import os
+
+
+class CmdLogger:
+    """
+    A command runner capable of capturing and logging output.
+
+    :param log: The logger
+    """
+    def __init__(self, log):
+        self.log = log
+
+    @asyncio.coroutine
+    def _read_and_log(self, stream):
+        """
+        Read from a stream, capturing and logging each line.
+
+        :param stream: The stream to read
+        :return: The captured lines
+        """
+        lines = []
+        while True:
+            line = yield from stream.readline()
+            if not line:
+                break
+            line = line.decode('utf-8')
+            lines.append(line)
+            self.log.info(line.rstrip())
+        return ''.join(lines)
+
+    @asyncio.coroutine
+    def _run_and_log(self, cmd):
+        """
+        A coroutine to run a command, capturing and logging its output.
+
+        :param cmd: The command to run
+        :return: The command's exit code, a list of stdout lines, and a list of
+        stderr lines
+        """
+        p = yield from asyncio.create_subprocess_exec(*cmd,
+                                                      stdout=PIPE, stderr=PIPE)
+        try:
+            stdout, stderr = yield from asyncio.gather(
+                self._read_and_log(p.stdout), self._read_and_log(p.stderr))
+        except Exception:
+            p.kill()
+            raise
+        finally:
+            r = yield from p.wait()
+
+        return r, stdout, stderr
+
+    def run(self, cmd):
+        """
+        Run a command, capturing and logging its output.
+
+        :param cmd: The command to run
+        :return: The command's exit code, a list of stdout lines, and a list \
+        of stderr lines
+        """
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self._run_and_log(cmd))
+
+
+@contextmanager
+def cwd(path):
+    """
+    A context manager for changing the working directory.
+
+    :param path: The new working directory
+    """
+    oldcwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(oldcwd)
