@@ -199,11 +199,11 @@ class Builder(Manifest):
         Build the package.
 
         :param rebuild: Build packages even if they exist
-        :return: A set of paths to all built packages
+        :return: A list of paths to all built packages
         """
         pkgs = self._build(rebuild=rebuild)
         self.save()
-        return pkgs
+        return list(pkgs)
 
     def install(self, sysroot=None):
         """
