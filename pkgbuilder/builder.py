@@ -210,6 +210,8 @@ class Builder(Manifest):
         Install built packages, building if necessary.
 
         :param sysroot: An alternative system root
+        :return: A list of paths to all built packages
         """
-        self.build()
+        pkgs = self.build()
         super().install(self.pacman_conf, sysroot)
+        return pkgs
