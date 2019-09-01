@@ -206,8 +206,9 @@ class Builder(Manifest):
 
     def install(self, sysroot=None):
         """
-        Install built packages.
+        Install built packages, building if necessary.
 
         :param sysroot: An alternative system root
         """
+        self.build()
         super().install(self.pacman_conf, sysroot)
