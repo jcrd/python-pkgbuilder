@@ -21,13 +21,9 @@ class Chroot:
     """
     A mkarchroot-based chroot capable of building packages with makechrootpkg.
 
-    :param pacman_conf: Path to pacman configuration file
-    :param makepkg_conf: Path to makepkg configuration file
     :param working_dir: Path to chroot directory
     """
-    def __init__(self, pacman_conf, makepkg_conf, working_dir):
-        self.pacman_conf = pacman_conf
-        self.makepkg_conf = makepkg_conf
+    def __init__(self, working_dir):
         self.working_dir = Path(working_dir)
         self.root = Path(working_dir, 'root')
 

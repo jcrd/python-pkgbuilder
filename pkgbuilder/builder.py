@@ -157,7 +157,7 @@ class Builder(Manifest):
         self.localdir = localdir
         self.source = source
 
-        self.chroot = Chroot(pacman_conf, makepkg_conf, chrootdir)
+        self.chroot = Chroot(chrootdir)
         self.pkgbuild = Pkgbuild.new(name, builddir, localdir, source)
 
         super().__init__(self.pkgbuild.builddir)
