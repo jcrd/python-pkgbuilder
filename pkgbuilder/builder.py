@@ -96,10 +96,13 @@ class Manifest:
         self.packages = set()
         self.dependencies = set()
 
-    def install(self, pacman_conf=None, sysroot=None, confirm=False):
+    def install(self, reinstall=False, pacman_conf=None, sysroot=None,
+                confirm=False):
         """
         Install the packages in the manifest.
 
+        :param reinstall: Reinstall installed packages if `True`, defaults to \
+        `False`
         :param pacman_conf: Path to pacman configuration file
         :param sysroot: An alternative system root \
         (see pacman's --sysroot flag)
@@ -109,6 +112,8 @@ class Manifest:
         cmd = ['sudo', 'pacman', '-U']
         if not confirm:
             cmd += ['--noconfirm']
+        if not reinstall:
+            cmd += ['--needed']
         if pacman_conf:
             cmd += ['--config', pacman_conf]
         if sysroot:
@@ -208,14 +213,16 @@ class Builder(Manifest):
         self.save()
         return list(pkgs)
 
-    def install(self, sysroot=None, confirm=False):
+    def install(self, reinstall=False, sysroot=None, confirm=False):
         """
         Install built packages, building if necessary.
 
+        :param reinstall: Reinstall installed packages if `True`, defaults to \
+        `False`
         :param sysroot: An alternative system root
         :param confirm: Prompt to install if `True`, defaults to `False`
         :return: A list of paths to all built packages
         """
         pkgs = self.build()
-        super().install(self.pacman_conf, sysroot, confirm)
+        super().install(reinstall, self.pacman_conf, sysroot, confirm)
         return pkgs
