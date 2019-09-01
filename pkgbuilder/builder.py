@@ -103,6 +103,7 @@ class Manifest:
         :param pacman_conf: Path to pacman configuration file
         :param sysroot: An alternative system root \
         (see pacman's --sysroot flag)
+        :raises CalledProcessError: Raised if the pacman command fails
         """
         cmd = ['sudo', 'pacman', '-U']
         if pacman_conf:

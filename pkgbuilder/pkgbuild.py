@@ -121,6 +121,7 @@ class Pkgbuild:
 
         :param makepkg_conf: Path to makepkg configuration file
         :return: A list of paths to packages
+        :raises CalledProcessError: Raised if the makepkg command fails
         """
         if self._packagelist:
             return self._packagelist
