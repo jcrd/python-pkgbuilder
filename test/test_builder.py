@@ -44,7 +44,6 @@ class TestSaveManifest(unittest.TestCase):
         self.builder._build()
 
     def test_save_manifest(self):
-        self.builder.save()
         self.assertTrue(self.builder.exists())
 
     def tearDown(self):

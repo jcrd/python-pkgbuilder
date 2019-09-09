@@ -187,7 +187,9 @@ class Builder(Manifest):
 
         if r == 0:
             self.packages |= set(self.pkgbuild.packagelist())
-            return self.all_packages
+            if self.verify():
+                self.save()
+                return self.all_packages
         else:
             for line in stdout.splitlines():
                 f = line.split(": ")
@@ -209,9 +211,7 @@ class Builder(Manifest):
         :param rebuild: Build packages even if they exist
         :return: A list of paths to all built packages
         """
-        pkgs = self._build(rebuild=rebuild)
-        self.save()
-        return list(pkgs)
+        return list(self._build(rebuild=rebuild))
 
     def install(self, reinstall=False, sysroot=None, confirm=False):
         """
