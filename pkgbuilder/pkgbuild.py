@@ -25,6 +25,13 @@ class Pkgbuild:
     """
     aur = Aur()
 
+    class NoPkgbuildError(Exception):
+        """
+        An exception raised when a local directory exists but does not \
+        contain a PKGBUILD file.
+        """
+        pass
+
     class SourceNotFoundError(Exception):
         """
         An exception raised when no source is found for the package name.
@@ -50,8 +57,11 @@ class Pkgbuild:
         Pkgbuild.Source.Aur
         :raises SourceNotFoundError: Raised when no source can be found for \
         name
+        :raises NoPkgbuildError: Raised when a local directory exists but \
+        does not contain a PKGBUILD file
         :return: LocalPkgbuild or AurPkgbuild
         """
+        err = {'message': 'Directory does not contain a PKGBUILD file'}
         dir = None
         try:
             path = Path(name).resolve(True)
@@ -60,8 +70,13 @@ class Pkgbuild:
         except FileNotFoundError:
             if localdir:
                 dir = Path(localdir, name).resolve()
-        if dir and not dir.exists():
-            dir = None
+        if dir:
+            if dir.exists():
+                if not Path(dir, 'PKGBUILD').exists():
+                    err['directory'] = str(dir)
+                    raise cls.NoPkgbuildError(err)
+            else:
+                dir = None
 
         err = {'message': 'Source for {} not found'.format(name)}
 
