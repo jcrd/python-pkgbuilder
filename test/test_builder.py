@@ -6,8 +6,8 @@ from pkgbuilder.pkgbuild import Pkgbuild
 from .common import test1_pkg, test1_dep1_pkg, localdir, pkgnames
 
 
-def newBuilder():
-    return Builder('test1',
+def newBuilder(pkg='test1'):
+    return Builder(pkg,
                    builddir='/tmp/pkgbuilder/cache',
                    chrootdir='/var/lib/pkgbuilder',
                    localdir=localdir,
@@ -60,6 +60,18 @@ class TestLoadManifest(unittest.TestCase):
         self.assertIsNotNone(j)
         self.assertIn(test1_pkg, pkgnames(j['packages']))
         self.assertIn(test1_dep1_pkg, pkgnames(j['dependencies']))
+
+    def tearDown(self):
+        self.builder.pkgbuild.remove()
+
+
+class TestFailingBuild(unittest.TestCase):
+    def setUp(self):
+        self.builder = newBuilder('test-fail')
+        self.builder.build()
+
+    def test_no_manifest(self):
+        self.assertFalse(self.builder.exists())
 
     def tearDown(self):
         self.builder.pkgbuild.remove()

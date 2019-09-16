@@ -1,0 +1,9 @@
+pkgname=test-fail
+pkgver=1
+pkgrel=1
+pkgdesc="Test failing build"
+arch=('any')
+depends=('test-nonexistent')
+
+package() {
+}
