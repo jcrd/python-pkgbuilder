@@ -18,3 +18,15 @@ class TestLocalPkgbuild(unittest.TestCase):
 
     def tearDown(self):
         self.pkgbuild.remove()
+
+
+class TestNoPkgbuild(unittest.TestCase):
+    def test_no_pkgbuild_error(self):
+        try:
+            Pkgbuild.new('test-nopkgbuild',
+                         builddir='/tmp/pkgbuilder/cache',
+                         localdir=localdir,
+                         source=Pkgbuild.Source.Local)
+            return False
+        except Pkgbuild.NoPkgbuildError:
+            return True

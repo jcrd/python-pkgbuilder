@@ -77,14 +77,5 @@ class TestFailingBuild(unittest.TestCase):
         self.builder.pkgbuild.remove()
 
 
-class TestNoPkgbuild(unittest.TestCase):
-    def test_no_pkgbuild_error(self):
-        try:
-            newBuilder('test-nopkgbuild')
-            return False
-        except Pkgbuild.NoPkgbuildError:
-            return True
-
-
 if __name__ == '__main__':
     unittest.main()
