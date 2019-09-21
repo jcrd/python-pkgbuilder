@@ -11,7 +11,6 @@ from pathlib import Path
 from itertools import repeat
 import json
 import logging
-import sys
 import time
 
 from .chroot import Chroot
@@ -86,7 +85,8 @@ class Manifest:
                 self.packages = set(j['packages'])
                 self.dependencies = set(j['dependencies'])
             except KeyError as e:
-                sys.stderr.write('Found malformed manifest: {}'.format(e))
+                log.warning('Found malformed manifest: {}'.format(e))
+                return None
 
             return j
 
