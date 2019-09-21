@@ -6,4 +6,5 @@ arch=('any')
 depends=('test-nonexistent')
 
 package() {
+    echo 'Packaging...'
 }

@@ -68,7 +68,10 @@ class TestLoadManifest(unittest.TestCase):
 class TestFailingBuild(unittest.TestCase):
     def setUp(self):
         self.builder = newBuilder('test-fail')
-        self.builder.build()
+        try:
+            self.builder.build()
+        except Pkgbuild.SourceNotFoundError:
+            pass
 
     def test_no_manifest(self):
         self.assertFalse(self.builder.exists())
