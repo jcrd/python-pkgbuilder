@@ -226,6 +226,7 @@ class Builder(Manifest):
         :param confirm: Prompt to install if `True`, defaults to `False`
         :return: A list of paths to all built packages
         """
-        pkgs = self.build()
+        if not self.all_packages:
+            self.build()
         super().install(reinstall, self.pacman_conf, sysroot, confirm)
-        return pkgs
+        return self.all_packages
