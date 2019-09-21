@@ -11,6 +11,7 @@ from asyncio.subprocess import PIPE
 from contextlib import contextmanager
 import asyncio
 import os
+import subprocess
 
 
 class CmdLogger:
@@ -87,3 +88,15 @@ def cwd(path):
         yield
     finally:
         os.chdir(oldcwd)
+
+
+def write_stdin(cmd, iter):
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    for i in iter:
+        try:
+            p.stdin.write(i.encode())
+        except BrokenPipeError:
+            p.wait()
+            return
+    p.stdin.close()
+    p.wait()

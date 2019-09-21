@@ -8,7 +8,7 @@
 """
 
 from pathlib import Path
-from subprocess import run
+from itertools import repeat
 import json
 import logging
 import sys
@@ -16,6 +16,7 @@ import time
 
 from .chroot import Chroot
 from .pkgbuild import Pkgbuild
+from .utils import write_stdin
 
 log = logging.getLogger('pkgbuilder')
 
@@ -110,22 +111,24 @@ class Manifest:
         :raises CalledProcessError: Raised if the pacman command fails
         """
         cmd = ['sudo', 'pacman', '-U']
-        if not confirm:
-            cmd += ['--noconfirm']
         if not reinstall:
             cmd += ['--needed']
         if pacman_conf:
             cmd += ['--config', pacman_conf]
         if sysroot:
             cmd += ['--sysroot', sysroot]
+
+        def install(cmd):
+            write_stdin(cmd, confirm and [] or repeat('y\n'))
+
         if self.dependencies:
             deps = cmd + ['--asdeps']
             for d in self.dependencies:
                 deps.append(d)
-            run(deps, check=True)
+            install(deps)
         for p in self.packages:
             cmd.append(p)
-        run(cmd, check=True)
+        install(cmd)
 
 
 class Builder(Manifest):
