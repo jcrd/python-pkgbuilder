@@ -30,3 +30,15 @@ class TestNoPkgbuild(unittest.TestCase):
             return False
         except Pkgbuild.NoPkgbuildError:
             return True
+
+
+class TestSourceNotFound(unittest.TestCase):
+    def test_source_not_found_error(self):
+        try:
+            Pkgbuild.new('test-fail',
+                         builddir='/tmp/pkgbuilder/cache',
+                         localdir=localdir,
+                         source=Pkgbuild.Source.Local)
+            return False
+        except Pkgbuild.SourceNotFoundError:
+            return True
