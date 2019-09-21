@@ -35,6 +35,8 @@ def main():
                    help='path to directory of local PKGBUILDs')
     p.add_argument('-i', '--install', action='store_true',
                    help='install packages')
+    p.add_argument('-I', '--reinstall', action='store_true',
+                   help='reinstall packages')
     p.add_argument('-B', '--rebuild', action='store_true',
                    help='build packages even if they exists')
     p.add_argument('-R', '--remove', action='store_true',
@@ -58,8 +60,8 @@ def main():
             b.build(args.rebuild)
         except Pkgbuild.SourceNotFoundError as e:
             die(e)
-        if args.install:
-            b.install()
+        if args.install or args.reinstall:
+            b.install(args.reinstall)
 
 
 if __name__ == '__main__':
