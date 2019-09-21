@@ -92,11 +92,18 @@ def cwd(path):
 
 def write_stdin(cmd, iter):
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+
+    def wait():
+        r = p.wait()
+        if r != 0:
+            raise subprocess.CalledProcessError(r, cmd)
+
     for i in iter:
         try:
             p.stdin.write(i.encode())
         except BrokenPipeError:
-            p.wait()
+            wait()
             return
+
     p.stdin.close()
-    p.wait()
+    wait()
