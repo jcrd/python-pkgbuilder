@@ -13,6 +13,12 @@ log.setLevel(logging.INFO)
 log.addHandler(logging.StreamHandler(sys.stdout))
 
 
+def die(e):
+    msg = 'ERROR: {}: {}\n'
+    sys.stderr.write(msg.format(*[v[1] for v in e.args[0].items()]))
+    sys.exit(1)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('names', nargs='*', default=[os.getcwd()],
@@ -39,13 +45,19 @@ def main():
     args = p.parse_args()
 
     for name in args.names:
-        b = Builder(name, args.pacman_config, args.makepkg_config,
-                    args.builddir, args.chrootdir, args.pkgbuilds,
-                    args.aur and Pkgbuild.Source.Aur or None)
+        try:
+            b = Builder(name, args.pacman_config, args.makepkg_config,
+                        args.builddir, args.chrootdir, args.pkgbuilds,
+                        args.aur and Pkgbuild.Source.Aur or None)
+        except Pkgbuild.NoPkgbuildError as e:
+            die(e)
         if args.remove:
             b.pkgbuild.remove()
             continue
-        b.build(args.rebuild)
+        try:
+            b.build(args.rebuild)
+        except Pkgbuild.SourceNotFoundError as e:
+            die(e)
         if args.install:
             b.install()
 
