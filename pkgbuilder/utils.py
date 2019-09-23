@@ -91,6 +91,13 @@ def cwd(path):
 
 
 def write_stdin(cmd, iter):
+    """
+    Write strings produced by an iterable to a subprocess's standard input.
+
+    :param cmd: The subprocess command
+    :param iter: The iterable
+    :raises CalledProcessError: Raised if the subprocess fails
+    """
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
     def wait():
