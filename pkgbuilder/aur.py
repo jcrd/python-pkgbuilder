@@ -19,12 +19,14 @@ class AurPackage:
     """
     A package found on the AUR that can be downloaded.
 
-    :param name: Package name
-    :param urlpath: URL to the package snapshot
+    :param info: Package info
+    :param url: URL to the AUR interface
     """
-    def __init__(self, name, urlpath):
-        self.name = name
-        self.urlpath = urlpath
+    def __init__(self, info, url):
+        self.info = info
+        self.url = url
+        self.name = info['Name']
+        self.urlpath = url + info['URLPath']
 
     def download(self, dest):
         """
@@ -107,4 +109,4 @@ class Aur:
         """
         i = self.info(name)
         if i:
-            return AurPackage(name, self.url + i['URLPath'])
+            return AurPackage(i, self.url)
