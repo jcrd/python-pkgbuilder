@@ -71,7 +71,7 @@ class Chroot:
         """
         if not self.exists():
             self.make()
-        pkgbuild.prepare()
+        pkgbuild.update()
         cmd = ['makechrootpkg', '-cr', str(self.working_dir)]
         for d in deps:
             cmd += ['-I', d]

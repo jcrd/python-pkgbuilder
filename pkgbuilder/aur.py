@@ -7,6 +7,8 @@
 .. moduleauthor:: James Reed <jcrd@tuta.io>
 """
 
+from pathlib import Path
+from subprocess import run
 import json
 import logging
 import tarfile
@@ -15,9 +17,45 @@ import urllib.request
 log = logging.getLogger('pkgbuilder.aur')
 
 
+class GitRepo:
+    """
+    A local git repository.
+
+    :param path: Path to local repository
+    """
+    def __init__(self, path):
+        self.path = Path(path)
+
+    def _git(self, cmd):
+        return 'git -C {} {}'.format(str(self.path), cmd).split()
+
+    def is_repo(self):
+        return run(self._git('status')).returncode == 0
+
+    def pull(self):
+        """
+        Run git pull in this repository.
+
+        :raises CalledProcessError: Raised if the git command fails
+        """
+        run(self._git('pull'), check=True)
+
+    def clone(self, url):
+        """
+        Clone a git repository to self.path.
+
+        :param url: Git repository URL
+        :raises FileExistsError: Raised if self.path already exists
+        :raises CalledProcessError: Raised if the git command fails
+        """
+        if self.path.exists():
+            raise FileExistsError
+        run(['git', 'clone', '--depth=1', url, str(self.path)], check=True)
+
+
 class AurPackage:
     """
-    A package found on the AUR that can be downloaded.
+    A package found on the AUR that can be downloaded or cloned via git.
 
     :param info: Package info
     :param url: URL to the AUR interface
@@ -27,6 +65,7 @@ class AurPackage:
         self.url = url
         self.name = info['Name']
         self.urlpath = url + info['URLPath']
+        self.giturl = url + '/{}.git'.format(self.name)
 
     def download(self, dest):
         """
@@ -45,6 +84,16 @@ class AurPackage:
                         m.name = m.name[len(prefix):]
                         members.append(m)
                 t.extractall(dest, members)
+
+    def git_clone(self, dest):
+        """
+        Clone the AUR package's git repository to given destination.
+
+        :param dest: Local repository destination
+        :raises FileExistsError: Raised if the destination already exists
+        :raises CalledProcessError: Raised if the git command fails
+        """
+        GitRepo(dest).clone(self.giturl)
 
 
 class Aur:

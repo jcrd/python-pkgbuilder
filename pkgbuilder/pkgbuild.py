@@ -9,11 +9,12 @@
 
 from enum import Flag, auto
 from pathlib import Path
-from shutil import copytree, rmtree
+from shutil import rmtree
 from subprocess import run
 import logging
 
-from .aur import Aur
+from .aur import Aur, GitRepo
+from .utils import synctree
 
 log = logging.getLogger('pkgbuilder.pkgbuild')
 
@@ -97,6 +98,7 @@ class Pkgbuild:
         self.name = name
         self.buildpath = Path(buildpath, sourcedir)
         self.builddir = Path(self.buildpath, self.name)
+        self.check_update = True
         self._packagelist = []
 
     def remove(self):
@@ -107,28 +109,22 @@ class Pkgbuild:
             return
         log.info('%s: Removing build dir... [%s]', self.name, self.builddir)
         rmtree(self.builddir)
+        self.check_update = True
 
-    def update(self):
+    def update(self, force=False):
         """
-        Update the build directory. An existing build directory will be
-        removed.  Local sources are copied and AUR sources are downloaded to
-        the build directory.
+        Update the build directory. Local sources are synchronized and AUR
+        sources are updated via git pull.
+
+        :param force: Force checking for updates
         """
+        if not (self.check_update or force):
+            return
         if not self.buildpath.exists():
             self.buildpath.mkdir(parents=True)
-        elif self.builddir.exists():
-            self.remove()
-
-        self._prepare()
+        self._update()
+        self.check_update = False
         log.info('%s: PKGBUILD [%s -> %s]', self.name, self.uri, self.builddir)
-
-    def prepare(self):
-        """
-        Prepare to build the package, i.e. copy or download the PKGBUILD if
-        the build directory doesn't already exist.
-        """
-        if not self.builddir.exists():
-            self.update()
 
     def packagelist(self, makepkg_conf=None):
         """
@@ -140,7 +136,7 @@ class Pkgbuild:
         """
         if self._packagelist:
             return self._packagelist
-        self.prepare()
+        self.update()
         cmd = ['makepkg', '--packagelist']
         if makepkg_conf:
             cmd += ['--config', makepkg_conf]
@@ -163,11 +159,11 @@ class LocalPkgbuild(Pkgbuild):
         self.uri = localdir.as_uri()
         self.localdir = localdir
 
-    def _prepare(self):
+    def _update(self):
         """
-        Copy the local PKGBUILD directory to the build directory.
+        Synchronize the local PKGBUILD directory with the build directory.
         """
-        copytree(self.localdir, self.builddir)
+        synctree(self.localdir, self.builddir)
 
 
 class AurPkgbuild(Pkgbuild):
@@ -180,11 +176,20 @@ class AurPkgbuild(Pkgbuild):
     """
     def __init__(self, name, buildpath, aurpkg):
         super().__init__(name, buildpath, 'aur')
-        self.uri = aurpkg.urlpath
+        self.uri = aurpkg.giturl
         self.aurpkg = aurpkg
 
-    def _prepare(self):
+    def _update(self):
         """
-        Download the AUR-based PKGBUILD to the build directory.
+        Clone the AUR package's git repository to the build directory or update
+        it via git pull.
         """
-        self.aurpkg.download(self.builddir)
+        if self.builddir.exists():
+            repo = GitRepo(self.builddir)
+            if repo.is_repo():
+                repo.pull()
+            else:
+                self.remove()
+                self.aurpkg.git_clone(self.builddir)
+        else:
+            self.aurpkg.git_clone(self.builddir)

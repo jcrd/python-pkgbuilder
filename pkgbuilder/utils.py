@@ -9,6 +9,9 @@
 
 from asyncio.subprocess import PIPE
 from contextlib import contextmanager
+from filecmp import dircmp
+from pathlib import Path
+from shutil import copy2, copytree, rmtree
 import asyncio
 import os
 import subprocess
@@ -114,3 +117,36 @@ def write_stdin(cmd, iter):
 
     p.stdin.close()
     wait()
+
+
+def synctree(a, b):
+    """
+    Synchronize the contents of b with those found in a.
+
+    :param a: The seed directory
+    :param b: The destination directory
+    """
+    def sync(cmp):
+        for name in cmp.left_only + cmp.diff_files:
+            a_path = str(Path(cmp.left, name))
+            b_path = str(Path(cmp.right, name))
+            try:
+                copytree(a_path, b_path)
+            except NotADirectoryError:
+                copy2(a_path, b_path)
+
+        for name in cmp.right_only:
+            path = str(Path(cmp.right, name))
+            try:
+                rmtree(path)
+            except NotADirectoryError:
+                os.remove(path)
+
+    if not Path(b).exists():
+        copytree(a, b)
+        return
+
+    cmp = dircmp(a, b)
+
+    for c in [cmp] + list(cmp.subdirs.values()):
+        sync(c)
