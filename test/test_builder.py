@@ -3,13 +3,13 @@ import unittest
 from pkgbuilder.builder import Builder
 from pkgbuilder.pkgbuild import Pkgbuild
 
-from .common import test1_pkg, test1_dep1_pkg, localdir, pkgnames
+from .common import test1_pkg, test1_dep1_pkg, localdir, chrootdir, pkgnames
 
 
 def newBuilder(pkg='test1'):
     return Builder(pkg,
                    builddir='/tmp/pkgbuilder/cache',
-                   chrootdir='/var/lib/pkgbuilder',
+                   chrootdir=chrootdir,
                    localdir=localdir,
                    source=Pkgbuild.Source.Local)
 
