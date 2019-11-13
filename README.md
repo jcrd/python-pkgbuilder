@@ -9,6 +9,22 @@ packages and their dependencies in chroots.
 * [pacman](https://www.archlinux.org/packages/core/x86_64/pacman/)
 * [devtools](https://www.archlinux.org/packages/extra/any/devtools/)
 
+## Setup
+
+Two directories are expected to exist before python-pkgbuilder is run:
+
+* `/var/cache/pkgbuilder`
+* `/var/lib/pkgbuilder`
+
+They should be writable by the user running python-pkgbuilder.
+
+This can be achieved by:
+
+* creating the `pkgbuilder` group
+* setting group ownership of the above directories to `pkgbuilder`
+* setting the mode of the above directories to `0775`
+* adding the user to the `pkgbuilder` group
+
 ## Command-line client
 
 ### Usage
