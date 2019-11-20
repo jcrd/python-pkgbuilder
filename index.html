@@ -95,13 +95,13 @@ See <a class="reference external" href="https://aur.archlinux.org/rpc.php">https
 
 <dl class="class">
 <dt id="pkgbuilder.aur.AurPackage">
-<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.aur.</code><code class="sig-name descname">AurPackage</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">urlpath</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.AurPackage" title="Permalink to this definition">¶</a></dt>
-<dd><p>A package found on the AUR that can be downloaded.</p>
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.aur.</code><code class="sig-name descname">AurPackage</code><span class="sig-paren">(</span><em class="sig-param">info</em>, <em class="sig-param">url</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.AurPackage" title="Permalink to this definition">¶</a></dt>
+<dd><p>A package found on the AUR that can be downloaded or cloned via git.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> – Package name</p></li>
-<li><p><strong>urlpath</strong> – URL to the package snapshot</p></li>
+<li><p><strong>info</strong> – Package info</p></li>
+<li><p><strong>url</strong> – URL to the AUR interface</p></li>
 </ul>
 </dd>
 </dl>
@@ -112,6 +112,62 @@ See <a class="reference external" href="https://aur.archlinux.org/rpc.php">https
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>dest</strong> – Extraction destination</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.aur.AurPackage.git_clone">
+<code class="sig-name descname">git_clone</code><span class="sig-paren">(</span><em class="sig-param">dest</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.AurPackage.git_clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone the AUR package’s git repository to given destination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dest</strong> – Local repository destination</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileExistsError</strong> – Raised if the destination already exists</p></li>
+<li><p><strong>CalledProcessError</strong> – Raised if the git command fails</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pkgbuilder.aur.GitRepo">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.aur.</code><code class="sig-name descname">GitRepo</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.GitRepo" title="Permalink to this definition">¶</a></dt>
+<dd><p>A local git repository.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to local repository</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.aur.GitRepo.clone">
+<code class="sig-name descname">clone</code><span class="sig-paren">(</span><em class="sig-param">url</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.GitRepo.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone a git repository to self.path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> – Git repository URL</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileExistsError</strong> – Raised if self.path already exists</p></li>
+<li><p><strong>CalledProcessError</strong> – Raised if the git command fails</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.aur.GitRepo.pull">
+<code class="sig-name descname">pull</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.aur.GitRepo.pull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run git pull in this repository.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>CalledProcessError</strong> – Raised if the git command fails</p>
 </dd>
 </dl>
 </dd></dl>
@@ -147,18 +203,25 @@ See <a class="reference external" href="https://aur.archlinux.org/rpc.php">https
 <dd class="field-odd"><p><strong>rebuild</strong> – Build packages even if they exist</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A set of paths to all built packages</p>
+<dd class="field-even"><p>A list of paths to all built packages</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="pkgbuilder.builder.Builder.install">
-<code class="sig-name descname">install</code><span class="sig-paren">(</span><em class="sig-param">sysroot=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Builder.install" title="Permalink to this definition">¶</a></dt>
-<dd><p>Install built packages.</p>
+<code class="sig-name descname">install</code><span class="sig-paren">(</span><em class="sig-param">reinstall=False</em>, <em class="sig-param">sysroot=None</em>, <em class="sig-param">confirm=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Builder.install" title="Permalink to this definition">¶</a></dt>
+<dd><p>Install built packages, building if necessary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>sysroot</strong> – An alternative system root</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reinstall</strong> – Reinstall installed packages if <cite>True</cite>, defaults to         <cite>False</cite></p></li>
+<li><p><strong>sysroot</strong> – An alternative system root</p></li>
+<li><p><strong>confirm</strong> – Prompt to install if <cite>True</cite>, defaults to <cite>False</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of paths to all built packages</p>
 </dd>
 </dl>
 </dd></dl>
@@ -198,14 +261,19 @@ See <a class="reference external" href="https://aur.archlinux.org/rpc.php">https
 
 <dl class="method">
 <dt id="pkgbuilder.builder.Manifest.install">
-<code class="sig-name descname">install</code><span class="sig-paren">(</span><em class="sig-param">pacman_conf=None</em>, <em class="sig-param">sysroot=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.install" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">install</code><span class="sig-paren">(</span><em class="sig-param">reinstall=False</em>, <em class="sig-param">pacman_conf=None</em>, <em class="sig-param">sysroot=None</em>, <em class="sig-param">confirm=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.builder.Manifest.install" title="Permalink to this definition">¶</a></dt>
 <dd><p>Install the packages in the manifest.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>reinstall</strong> – Reinstall installed packages if <cite>True</cite>, defaults to         <cite>False</cite></p></li>
 <li><p><strong>pacman_conf</strong> – Path to pacman configuration file</p></li>
 <li><p><strong>sysroot</strong> – An alternative system root         (see pacman’s –sysroot flag)</p></li>
+<li><p><strong>confirm</strong> – Prompt to install if <cite>True</cite>, defaults to <cite>False</cite></p></li>
 </ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>CalledProcessError</strong> – Raised if the pacman command fails</p>
 </dd>
 </dl>
 </dd></dl>
@@ -252,15 +320,11 @@ dependencies properties.</p>
 <span id="chroot-module"></span><h2>chroot module<a class="headerlink" href="#module-pkgbuilder.chroot" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-chroot"></span><dl class="class">
 <dt id="pkgbuilder.chroot.Chroot">
-<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.chroot.</code><code class="sig-name descname">Chroot</code><span class="sig-paren">(</span><em class="sig-param">pacman_conf</em>, <em class="sig-param">makepkg_conf</em>, <em class="sig-param">working_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.chroot.</code><code class="sig-name descname">Chroot</code><span class="sig-paren">(</span><em class="sig-param">working_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot" title="Permalink to this definition">¶</a></dt>
 <dd><p>A mkarchroot-based chroot capable of building packages with makechrootpkg.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pacman_conf</strong> – Path to pacman configuration file</p></li>
-<li><p><strong>makepkg_conf</strong> – Path to makepkg configuration file</p></li>
-<li><p><strong>working_dir</strong> – Path to chroot directory</p></li>
-</ul>
+<dd class="field-odd"><p><strong>working_dir</strong> – Path to chroot directory</p>
 </dd>
 </dl>
 <dl class="method">
@@ -298,6 +362,23 @@ dependencies properties.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.pacman">
+<code class="sig-name descname">pacman</code><span class="sig-paren">(</span><em class="sig-param">flags</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.pacman" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run pacman with the given flags in the chroot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>flags</strong> – String containing flags for the pacman command</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Chroot.refresh">
+<code class="sig-name descname">refresh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refresh pacman databases.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pkgbuilder.chroot.Chroot.remove">
 <code class="sig-name descname">remove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.remove" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove the chroot.</p>
@@ -307,6 +388,98 @@ dependencies properties.</p>
 <dt id="pkgbuilder.chroot.Chroot.update">
 <code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Chroot.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the chroot with <cite>pacman -Syu</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pkgbuilder.chroot.Mirrorlist">
+<em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.chroot.</code><code class="sig-name descname">Mirrorlist</code><span class="sig-paren">(</span><em class="sig-param">chroot</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>A chroot’s mirrorlist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>chroot</strong> – The chroot</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="pkgbuilder.chroot.Mirrorlist.add">
+<code class="sig-name descname">add</code><span class="sig-paren">(</span><em class="sig-param">mirror</em>, <em class="sig-param">write=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append the given mirror to the chroot’s mirrorlist and refresh pacman
+databases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mirror</strong> – The mirror URL</p></li>
+<li><p><strong>write</strong> – Whether to write the changed mirrorlist to the chroot,         defaults to <cite>True</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Mirrorlist.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">path='/etc/pacman.d/mirrorlist'</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the provided mirrorlist into the chroot and refresh pacman
+databases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – Path to the mirrorlist</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Mirrorlist.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the mirrors from the mirrorlist file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of mirror URLs</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Mirrorlist.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">mirror</em>, <em class="sig-param">write=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the given mirror as the chroot’s only mirror and refresh pacman
+databases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mirror</strong> – The mirror URL</p></li>
+<li><p><strong>write</strong> – Whether to write the changed mirrorlist to the chroot,         defaults to <cite>True</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Mirrorlist.set_date">
+<code class="sig-name descname">set_date</code><span class="sig-paren">(</span><em class="sig-param">date</em>, <em class="sig-param">write=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist.set_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the mirror to the Arch Linux Archive repository of the given date.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>date</strong> – A date object</p></li>
+<li><p><strong>write</strong> – Whether to write the changed mirrorlist to the chroot,         defaults to <cite>True</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The mirror URL</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pkgbuilder.chroot.Mirrorlist.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.chroot.Mirrorlist.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the list of mirrors to the mirrorlist file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>String of mirrorlist content</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -349,6 +522,12 @@ dependencies properties.</p>
 <em class="property">class </em><code class="sig-prename descclassname">pkgbuilder.pkgbuild.</code><code class="sig-name descname">Pkgbuild</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">buildpath</em>, <em class="sig-param">sourcedir</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents a local or AUR-based PKGBUILD. It creates the
 directory needed to build the package.</p>
+<dl class="exception">
+<dt id="pkgbuilder.pkgbuild.Pkgbuild.NoPkgbuildError">
+<em class="property">exception </em><code class="sig-name descname">NoPkgbuildError</code><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.NoPkgbuildError" title="Permalink to this definition">¶</a></dt>
+<dd><p>An exception raised when a local directory exists but does not         contain a PKGBUILD file.</p>
+</dd></dl>
+
 <dl class="class">
 <dt id="pkgbuilder.pkgbuild.Pkgbuild.Source">
 <em class="property">class </em><code class="sig-name descname">Source</code><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.Source" title="Permalink to this definition">¶</a></dt>
@@ -375,7 +554,10 @@ directory needed to build the package.</p>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="#pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError" title="pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError"><strong>SourceNotFoundError</strong></a> – Raised when no source can be found for         name</p>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError" title="pkgbuilder.pkgbuild.Pkgbuild.SourceNotFoundError"><strong>SourceNotFoundError</strong></a> – Raised when no source can be found for         name</p></li>
+<li><p><a class="reference internal" href="#pkgbuilder.pkgbuild.Pkgbuild.NoPkgbuildError" title="pkgbuilder.pkgbuild.Pkgbuild.NoPkgbuildError"><strong>NoPkgbuildError</strong></a> – Raised when a local directory exists but         does not contain a PKGBUILD file</p></li>
+</ul>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>LocalPkgbuild or AurPkgbuild</p>
@@ -394,14 +576,10 @@ directory needed to build the package.</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A list of paths to packages</p>
 </dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>CalledProcessError</strong> – Raised if the makepkg command fails</p>
+</dd>
 </dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="pkgbuilder.pkgbuild.Pkgbuild.prepare">
-<code class="sig-name descname">prepare</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.prepare" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepare to build the package, i.e. copy or download the PKGBUILD if
-the build directory doesn’t already exist.</p>
 </dd></dl>
 
 <dl class="method">
@@ -412,10 +590,14 @@ the build directory doesn’t already exist.</p>
 
 <dl class="method">
 <dt id="pkgbuilder.pkgbuild.Pkgbuild.update">
-<code class="sig-name descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the build directory. An existing build directory will be
-removed.  Local sources are copied and AUR sources are downloaded to
-the build directory.</p>
+<code class="sig-name descname">update</code><span class="sig-paren">(</span><em class="sig-param">force=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.pkgbuild.Pkgbuild.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the build directory. Local sources are synchronized and AUR
+sources are updated via git pull.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>force</strong> – Force checking for updates</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -455,6 +637,37 @@ the build directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>path</strong> – The new working directory</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pkgbuilder.utils.synctree">
+<code class="sig-prename descclassname">pkgbuilder.utils.</code><code class="sig-name descname">synctree</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">b</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.utils.synctree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synchronize the contents of b with those found in a.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – The seed directory</p></li>
+<li><p><strong>b</strong> – The destination directory</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pkgbuilder.utils.write_stdin">
+<code class="sig-prename descclassname">pkgbuilder.utils.</code><code class="sig-name descname">write_stdin</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">iter</em><span class="sig-paren">)</span><a class="headerlink" href="#pkgbuilder.utils.write_stdin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write strings produced by an iterable to a subprocess’s standard input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> – The subprocess command</p></li>
+<li><p><strong>iter</strong> – The iterable</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>CalledProcessError</strong> – Raised if the subprocess fails</p>
 </dd>
 </dl>
 </dd></dl>
@@ -513,7 +726,7 @@ the build directory.</p>
       &copy;2019, James Reed.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
