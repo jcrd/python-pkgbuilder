@@ -143,6 +143,10 @@ class Builder(Manifest):
     :param localdir: Path to directory of local PKGBUILDs
     :param source: PKGBUILD source - one of Pkgbuild.Source.Local or \
     Pkgbuild.Source.Aur
+    :raises SourceNotFoundError: Raised when no source can be found for \
+    name
+    :raises NoPkgbuildError: Raised when a local directory exists but \
+    does not contain a PKGBUILD file
     """
     def __init__(self,
                  name,
