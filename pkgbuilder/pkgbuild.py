@@ -47,7 +47,7 @@ class Pkgbuild:
         Aur = auto()
 
     @classmethod
-    def new(cls, name, builddir, localdir=None, source=None):
+    def new(cls, name, builddir, localdir=None, source=None, makepkg_conf=None):
         """
         Create a new LocalPkgbuild or AurPkgbuild.
 
@@ -56,6 +56,7 @@ class Pkgbuild:
         :param localdir: Path to directory of local PKGBUILDs
         :param source: PKGBUILD source - one of Pkgbuild.Source.Local or \
         Pkgbuild.Source.Aur
+        :param makepkg_conf: Path to makepkg configuration file
         :raises SourceNotFoundError: Raised when no source can be found for \
         name
         :raises NoPkgbuildError: Raised when a local directory exists but \
@@ -82,21 +83,22 @@ class Pkgbuild:
         err = {'message': 'Source for {} not found'.format(name)}
 
         if dir and source != cls.Source.Aur:
-            return LocalPkgbuild(name, builddir, dir)
+            return LocalPkgbuild(name, builddir, dir, makepkg_conf)
         elif source == cls.Source.Local:
             err['source'] = cls.Source.Local
             raise cls.SourceNotFoundError(err)
         else:
             aurpkg = Pkgbuild.aur.get_package(name)
             if aurpkg:
-                return AurPkgbuild(name, builddir, aurpkg)
+                return AurPkgbuild(name, builddir, aurpkg, makepkg_conf)
             else:
                 err['source'] = cls.Source.Aur
                 raise cls.SourceNotFoundError(err)
 
-    def __init__(self, name, buildpath, sourcedir):
+    def __init__(self, name, buildpath, sourcedir, makepkg_conf=None):
         self.name = name
         self.buildpath = Path(buildpath, sourcedir)
+        self.makepkg_conf = makepkg_conf
         self.builddir = Path(self.buildpath, self.name)
         self.check_update = True
         self._packagelist = []
@@ -126,11 +128,11 @@ class Pkgbuild:
         self.check_update = False
         log.info('%s: PKGBUILD [%s -> %s]', self.name, self.uri, self.builddir)
 
-    def packagelist(self, makepkg_conf=None):
+    @property
+    def packagelist(self):
         """
         Get a list of paths to packages this PKGBUILD will produce when built.
 
-        :param makepkg_conf: Path to makepkg configuration file
         :return: A list of paths to packages
         :raises CalledProcessError: Raised if the makepkg command fails
         """
@@ -138,8 +140,8 @@ class Pkgbuild:
             return self._packagelist
         self.update()
         cmd = ['makepkg', '--packagelist']
-        if makepkg_conf:
-            cmd += ['--config', makepkg_conf]
+        if self.makepkg_conf:
+            cmd += ['--config', self.makepkg_conf]
         r = run(cmd, cwd=self.builddir, capture_output=True, text=True,
                 check=True)
         self._packagelist = r.stdout.splitlines()
@@ -153,9 +155,10 @@ class LocalPkgbuild(Pkgbuild):
     :param name: Package name
     :param buildpath: Path to build directory
     :param localdir: Path to the directory containing PKGBUILD
+    :param makepkg_conf: Path to makepkg configuration file
     """
-    def __init__(self, name, buildpath, localdir):
-        super().__init__(name, buildpath, 'local')
+    def __init__(self, name, buildpath, localdir, makepkg_conf=None):
+        super().__init__(name, buildpath, 'local', makepkg_conf)
         self.uri = localdir.as_uri()
         self.localdir = localdir
 
@@ -173,9 +176,10 @@ class AurPkgbuild(Pkgbuild):
     :param name: Package name
     :param buildpath: Path to build directory
     :param aurpkg: AurPackage for the given package name
+    :param makepkg_conf: Path to makepkg configuration file
     """
-    def __init__(self, name, buildpath, aurpkg):
-        super().__init__(name, buildpath, 'aur')
+    def __init__(self, name, buildpath, aurpkg, makepkg_conf=None):
+        super().__init__(name, buildpath, 'aur', makepkg_conf)
         self.uri = aurpkg.giturl
         self.aurpkg = aurpkg
 

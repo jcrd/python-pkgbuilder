@@ -165,7 +165,8 @@ class Builder(Manifest):
         self.source = source
 
         self.chroot = Chroot(chrootdir)
-        self.pkgbuild = Pkgbuild.new(name, builddir, localdir, source)
+        self.pkgbuild = Pkgbuild.new(name, builddir, localdir, source,
+                                     makepkg_conf)
 
         super().__init__(self.pkgbuild.builddir)
 
@@ -193,7 +194,7 @@ class Builder(Manifest):
                                                 self.dependencies)
 
         if r == 0:
-            self.packages |= set(self.pkgbuild.packagelist())
+            self.packages |= set(self.pkgbuild.packagelist)
             if self.verify():
                 self.save()
                 return self.all_packages
