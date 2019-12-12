@@ -208,7 +208,7 @@ class Builder(Manifest):
                                 self.builddir, self.chrootdir, self.localdir)
                     self.dependencies |= b._build(rebuild)
             if self.dependencies:
-                self._build(rebuild, iter + 1)
+                return self._build(rebuild, iter + 1)
 
         return set()
 

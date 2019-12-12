@@ -29,7 +29,7 @@ class TestBuild(unittest.TestCase):
         self.builder.chroot.make()
 
     def test_build(self):
-        self.builder._build()
+        self.assertTrue(self.builder._build())
         self.assertIn(test1_pkg, pkgnames(self.builder.packages))
         self.assertIn(test1_dep1_pkg, pkgnames(self.builder.dependencies))
         self.assertTrue(self.builder.verify())
