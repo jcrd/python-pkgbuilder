@@ -78,7 +78,7 @@ class Manifest:
         :return: A dictionary with keys: timestamp, packages, dependencies
         """
         if not self.exists():
-            return None
+            return {}
         with open(self.filepath) as f:
             j = json.load(f)
             try:
@@ -86,7 +86,7 @@ class Manifest:
                 self.dependencies = set(j['dependencies'])
             except KeyError as e:
                 log.warning('Found malformed manifest: {}'.format(e))
-                return None
+                return {}
 
             return j
 
