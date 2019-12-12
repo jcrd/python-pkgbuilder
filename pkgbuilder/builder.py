@@ -51,7 +51,7 @@ class Manifest:
         """
         Verify that the packages in the manifest exist.
 
-        :return: True if all packages exist, otherwise false
+        :return: `True` if all packages exist, `False` otherwise
         """
         for p in self.all_packages:
             if not Path(p).exists():
