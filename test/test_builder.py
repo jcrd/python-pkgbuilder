@@ -1,7 +1,7 @@
 import unittest
 
 from pkgbuilder.builder import Builder
-from pkgbuilder.pkgbuild import Pkgbuild
+from pkgbuilder.pkgbuild import Pkgbuild, LocalDir, Restriction
 
 from .common import test1_pkg, test1_dep1_pkg, localdir, chrootdir, pkgnames
 
@@ -70,7 +70,7 @@ class TestFailingBuild(unittest.TestCase):
         self.builder = newBuilder('test-fail')
         try:
             self.builder.build()
-        except Pkgbuild.SourceNotFoundError:
+        except LocalDir.ProviderNotFoundError:
             pass
 
     def test_no_manifest(self):
@@ -79,6 +79,31 @@ class TestFailingBuild(unittest.TestCase):
     def tearDown(self):
         self.builder.pkgbuild.remove()
 
+
+class TestDependencyRestriction(unittest.TestCase):
+    def setUp(self):
+        self.builder = newBuilder('test-dep-restriction')
+
+    def test_dependency_restriction(self):
+        self.assertTrue(self.builder.build())
+
+    def tearDown(self):
+        self.builder.pkgbuild.remove()
+
+class TestDependencyRestrictionFailure(unittest.TestCase):
+    def setUp(self):
+        self.builder = newBuilder('test-dep-restriction-fail')
+
+    def test_dependency_restriction_failure(self):
+        try:
+            self.builder.build()
+            return False
+        except LocalDir.ProviderNotFoundError as e:
+            if Restriction('>', '2') in e['version_restrictions']:
+                return True
+
+    def tearDown(self):
+        self.builder.pkgbuild.remove()
 
 if __name__ == '__main__':
     unittest.main()

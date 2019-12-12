@@ -32,6 +32,17 @@ class GitRepo:
     def is_repo(self):
         return run(self._git('status')).returncode == 0
 
+    def up_to_date(self):
+        """
+        Check if the repository is up-to-date.
+
+        :return: `True` if up-to-date, `False` otherwise
+        :raises CalledProcessError: Raised if the git command fails
+        """
+        run(self._git('fetch origin master'), check=True)
+        r = run(self._git('rev-list HEAD..origin/master --count'), check=True)
+        return r.stdout == '0'
+
     def pull(self):
         """
         Run git pull in this repository.

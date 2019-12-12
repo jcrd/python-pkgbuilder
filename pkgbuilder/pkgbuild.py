@@ -7,16 +7,137 @@
 .. moduleauthor:: James Reed <jcrd@tuta.io>
 """
 
+from collections import namedtuple
 from enum import Flag, auto
 from pathlib import Path
 from shutil import rmtree
 from subprocess import run
 import logging
+import os
+
+from srcinfo.parse import parse_srcinfo
+from parse import parse
 
 from .aur import Aur, GitRepo
 from .utils import synctree
 
 log = logging.getLogger('pkgbuilder.pkgbuild')
+
+Restriction = namedtuple('Restriction', ['compare', 'version'])
+
+
+def parse_restriction(pkg):
+    """
+    Parse package name and version Restriction string.
+
+    :return: A tuple of the package name and a version Restriction tuple
+    """
+    for c in ['>=', '<=', '>', '<', '=']:
+        p = parse('{name}' + c + '{version}', pkg)
+        if p:
+            return (p.named['name'], Restriction(c, p.named['version']))
+
+    return (pkg, None)
+
+
+class LocalDir:
+    """
+    A directory containing local PKGBUILDs.
+
+    :param path: Path to directory
+    :param builddir: Path to package build directory
+    :param makepkg_conf: Path to makepkg configuration file
+    """
+    class ProviderNotFoundError(Exception):
+        """
+        An exception raised when no provider is found for the package name.
+        """
+        pass
+
+    Package = namedtuple('Package', ['name', 'version'])
+
+    def __init__(self, path, builddir, makepkg_conf=None):
+        self.path = path
+        self.builddir = builddir
+        self.makepkg_conf = makepkg_conf
+        self.check_update = True
+        self.packages = {}
+
+    def update(self, force=False):
+        """
+        Parse PKGBUILDs in the directory.
+
+        :param force: Force checking for updates
+        :return: A dictionary mapping Package tuples to lists of Pkgbuild \
+        objects
+        """
+        if not self.path:
+            return {}
+        if not (self.check_update or force):
+            return self.packages
+
+        def add_package(pkg, pkgbuild):
+            if pkg in self.packages:
+                self.packages[pkg].append(pkgbuild)
+            else:
+                self.packages[pkg] = [pkgbuild]
+
+        with os.scandir(self.path) as dir:
+            for entry in dir:
+                if not entry.is_dir():
+                    continue
+                try:
+                    pkgbuild = Pkgbuild.new(entry.name, self.builddir,
+                                            self.path, Pkgbuild.Source.Local)
+                except Pkgbuild.NoPkgbuildError:
+                    continue
+                srcinfo = pkgbuild.srcinfo
+                if 'provides' in srcinfo:
+                    for p in srcinfo['provides']:
+                        s = p.split('=')
+                        if len(s) < 2:
+                            s.append(srcinfo['pkgver'])
+                        add_package(LocalDir.Package(*s), pkgbuild)
+                else:
+                    add_package(LocalDir.Package(srcinfo['pkgbase'],
+                                                 srcinfo['pkgver']),
+                                pkgbuild)
+
+        self.check_update = False
+        return self.packages
+
+    def providers(self, name, restrictions=[]):
+        """
+        Get providers for a package with version Restrictions.
+
+        :param name: Package name
+        :param restrictions: A list of version Restrictions
+        :raises ProviderNotFoundError: Raised when no provider can be found \
+        for name
+        :return: A list of Pkgbuild objects providing the package
+        """
+        def restrict_version(v, restrictions):
+            for r in restrictions:
+                if (r.compare == '>' and not v > r.version) \
+                or (r.compare == '<' and not v < r.version) \
+                or (r.compare == '=' and not v == r.version) \
+                or (r.compare == '>=' and not v >= r.version) \
+                or (r.compare == '<=' and not v <= r.version):
+                    return False
+
+            return True
+
+        err = {'message': 'Provider for {} not found'.format(name),
+               'source': Pkgbuild.Source.Local,
+               'version_restrictions': restrictions}
+
+        if not self.packages or not self.path:
+            raise LocalDir.ProviderNotFoundError(err)
+        for pkg, pkgbuilds in self.packages.items():
+            if pkg.name == name \
+                    and restrict_version(pkg.version, restrictions):
+                return pkgbuilds
+        raise LocalDir.ProviderNotFoundError(err)
 
 
 class Pkgbuild:
@@ -36,6 +157,12 @@ class Pkgbuild:
     class SourceNotFoundError(Exception):
         """
         An exception raised when no source is found for the package name.
+        """
+        pass
+
+    class ParseSrcinfoError(Exception):
+        """
+        An exception raised when parsing a PKGBUILD's srcinfo fails.
         """
         pass
 
@@ -100,8 +227,11 @@ class Pkgbuild:
         self.buildpath = Path(buildpath, sourcedir)
         self.makepkg_conf = makepkg_conf
         self.builddir = Path(self.buildpath, self.name)
+        self.pkgbuildpath = Path(self.builddir, 'PKGBUILD')
         self.check_update = True
         self._packagelist = []
+        self._srcinfo = {}
+        self._dependencies = {}
 
     def remove(self):
         """
@@ -124,9 +254,10 @@ class Pkgbuild:
             return
         if not self.buildpath.exists():
             self.buildpath.mkdir(parents=True)
-        self._update()
+        if self._update():
+            log.info('%s: PKGBUILD [%s -> %s]', self.name, self.uri,
+                     self.builddir)
         self.check_update = False
-        log.info('%s: PKGBUILD [%s -> %s]', self.name, self.uri, self.builddir)
 
     @property
     def packagelist(self):
@@ -147,6 +278,91 @@ class Pkgbuild:
         self._packagelist = r.stdout.splitlines()
         return self._packagelist
 
+    @property
+    def srcinfo(self):
+        """
+        Get a srcinfo dictionary corresponding to makepkg --printsrcinfo output.
+
+        :return: The srcinfo dictionary
+        :raises CalledProcessError: Raised if the makepkg command fails
+        :raises ParseSrcinfoError: Raised if parsing the srcinfo fails
+        """
+        if self._srcinfo:
+            return self._srcinfo
+
+        self.update()
+        file = Path(self.builddir, '.SRCINFO')
+
+        mtime = os.path.getmtime
+        if file.exists() and not mtime(self.pkgbuildpath) > mtime(file):
+            with open(file) as f:
+                info = f.read()
+        else:
+            cmd = ['makepkg', '--printsrcinfo']
+            if self.makepkg_conf:
+                cmd += ['--config', self.makepkg_conf]
+            log.info('%s: Generating .SRCINFO... [%s]', self.name,
+                     self.builddir)
+            r = run(cmd, cwd=self.builddir, capture_output=True, text=True,
+                    check=True)
+            info = r.stdout
+            with open(file, 'w') as f:
+                f.write(info)
+
+        srcinfo, errors = parse_srcinfo(info)
+
+        if errors:
+            err = {'message': 'Failed to parse PKGBUILD srcinfo',
+                   'errors': errors}
+            raise ParseSrcinfoError(err)
+
+        self._srcinfo = srcinfo
+        return self._srcinfo
+
+    @property
+    def dependencies(self):
+        """
+        Get package dependencies and Restrictions.
+
+        :return: A dictionary mapping package names to a list of Restriction \
+        objects.
+        """
+        if self._dependencies:
+            return self._dependencies
+
+        srcinfo_deps = []
+        try:
+            srcinfo_deps += self.srcinfo['makedepends']
+            srcinfo_deps += self.srcinfo['depends']
+        except KeyError:
+            pass
+
+        for pkg in srcinfo_deps:
+            name, r = parse_restriction(pkg)
+            if r:
+                deps = self._dependencies
+                if name in deps:
+                    if r not in deps[name]:
+                        deps[name].append(r)
+                else:
+                    deps[name] = [r]
+            else:
+                self._dependencies[pkg] = []
+
+        return self._dependencies
+
+    def dependency_restrictions(self, name):
+        """
+        Get dependency Restrictions for a package by name.
+
+        :param name: The package name
+        :return: A list of Restriction objects
+        """
+        try:
+            return self.dependencies[name]
+        except KeyError:
+            return []
+
 
 class LocalPkgbuild(Pkgbuild):
     """
@@ -165,8 +381,10 @@ class LocalPkgbuild(Pkgbuild):
     def _update(self):
         """
         Synchronize the local PKGBUILD directory with the build directory.
+
+        :return: `True` if the builddir was updated, `False` otherwise
         """
-        synctree(self.localdir, self.builddir)
+        return synctree(self.localdir, self.builddir)
 
 
 class AurPkgbuild(Pkgbuild):
@@ -187,13 +405,19 @@ class AurPkgbuild(Pkgbuild):
         """
         Clone the AUR package's git repository to the build directory or update
         it via git pull.
+
+        :return: `True` if the builddir was updated, `False` otherwise
         """
         if self.builddir.exists():
             repo = GitRepo(self.builddir)
             if repo.is_repo():
+                if repo.up_to_date():
+                    return False
                 repo.pull()
             else:
                 self.remove()
                 self.aurpkg.git_clone(self.builddir)
         else:
             self.aurpkg.git_clone(self.builddir)
+
+        return True

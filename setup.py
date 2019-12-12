@@ -16,6 +16,7 @@ setup(
             'pkgbuilder = pkgbuilder.__main__:main',
         ],
     },
+    install_requires = ['srcinfo'],
 
     description='Library and CLI tool to build pacman packages',
     long_description=read('README.md'),

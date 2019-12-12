@@ -14,7 +14,7 @@ import logging
 import time
 
 from .chroot import Chroot
-from .pkgbuild import Pkgbuild
+from .pkgbuild import Pkgbuild, LocalDir, parse_restriction
 from .utils import write_stdin
 
 log = logging.getLogger('pkgbuilder')
@@ -144,7 +144,7 @@ class Builder(Manifest):
     :param source: PKGBUILD source - one of Pkgbuild.Source.Local or \
     Pkgbuild.Source.Aur
     :raises SourceNotFoundError: Raised when no source can be found for \
-    name
+    name or its dependencies
     :raises NoPkgbuildError: Raised when a local directory exists but \
     does not contain a PKGBUILD file
     """
@@ -155,18 +155,25 @@ class Builder(Manifest):
                  builddir='/var/cache/pkgbuilder',
                  chrootdir='/var/lib/pkgbuilder',
                  localdir=None,
-                 source=None):
+                 source=None,
+                 restrictions=[]):
         self.name = name
         self.pacman_conf = pacman_conf
         self.makepkg_conf = makepkg_conf
         self.builddir = builddir
         self.chrootdir = chrootdir
-        self.localdir = localdir
         self.source = source
 
         self.chroot = Chroot(chrootdir)
-        self.pkgbuild = Pkgbuild.new(name, builddir, localdir, source,
-                                     makepkg_conf)
+
+        if isinstance(localdir, LocalDir):
+            self.localdir = localdir
+            self.pkgbuild = localdir.providers(name, restrictions)[0]
+        else:
+            self.localdir = LocalDir(localdir, builddir, makepkg_conf)
+            self.localdir.update()
+            self.pkgbuild = Pkgbuild.new(name, builddir, localdir, source,
+                                         makepkg_conf)
 
         super().__init__(self.pkgbuild.builddir)
 
@@ -198,14 +205,16 @@ class Builder(Manifest):
             if self.verify():
                 self.save()
                 return self.all_packages
-        else:
+        elif iter == 1:
             for line in stdout.splitlines():
                 f = line.split(": ")
                 if f[0] == 'error' and f[1] == 'target not found':
-                    dep = f[2]
+                    dep, _ = parse_restriction(f[2])
                     log.info('%s: Missing dependency: %s', self.name, dep)
+                    rs = self.pkgbuild.dependency_restrictions(dep)
                     b = Builder(dep, self.pacman_conf, self.makepkg_conf,
-                                self.builddir, self.chrootdir, self.localdir)
+                                self.builddir, self.chrootdir, self.localdir,
+                                restrictions=rs)
                     self.dependencies |= b._build(rebuild)
             if self.dependencies:
                 return self._build(rebuild, iter + 1)

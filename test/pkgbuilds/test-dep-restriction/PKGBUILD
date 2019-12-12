@@ -1,0 +1,11 @@
+pkgname=test-dep-restriction
+pkgver=1
+pkgrel=1
+pkgdesc="Test dependency restrictions"
+arch=('any')
+depends=('test-provides-version1>1' 'test-provides-version1<3')
+makedepends=('test1-dep1=1')
+
+package() {
+    echo 'Packaging...'
+}

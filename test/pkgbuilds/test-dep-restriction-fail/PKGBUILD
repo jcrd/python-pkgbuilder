@@ -1,0 +1,11 @@
+pkgname=test-dep-restriction-fail
+pkgver=1
+pkgrel=1
+pkgdesc="Test and fail dependency restrictions"
+arch=('any')
+depends=('test-provides-version1>1' 'test-provides-version1<3'
+         'test-provides-version2>2')
+
+package() {
+    echo 'Packaging...'
+}

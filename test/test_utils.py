@@ -30,8 +30,6 @@ class TestSynctree(unittest.TestCase):
 
         echo('after', 'file1')
         echo('after', self.dir, 'file1')
-        os.remove(Path(self.seed.name, 'file2'))
-        os.remove(Path(self.seed.name, self.dir, 'file2'))
         echo('new', 'file4')
         echo('new', self.dir, 'file4')
 
@@ -44,8 +42,6 @@ class TestSynctree(unittest.TestCase):
         with open(Path(self.dest, self.dir, 'file1')) as f:
             content = list(f)
             self.assertEqual(content[0], 'after')
-        self.assertFalse(Path(self.dest, 'file2').exists())
-        self.assertFalse(Path(self.dest, self.dir, 'file2').exists())
         self.assertTrue(Path(self.dest, 'file4').exists())
         self.assertTrue(Path(self.dest, self.dir, 'file4').exists())
 

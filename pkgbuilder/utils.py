@@ -121,10 +121,12 @@ def write_stdin(cmd, iter):
 
 def synctree(a, b):
     """
-    Synchronize the contents of b with those found in a.
+    Copy new and updated files from a to b.
 
     :param a: The seed directory
     :param b: The destination directory
+
+    :return: `True` if files were copied, `False` otherwise
     """
     def sync(cmp):
         for name in cmp.left_only + cmp.diff_files:
@@ -135,18 +137,16 @@ def synctree(a, b):
             except NotADirectoryError:
                 copy2(a_path, b_path)
 
-        for name in cmp.right_only:
-            path = str(Path(cmp.right, name))
-            try:
-                rmtree(path)
-            except NotADirectoryError:
-                os.remove(path)
+        return len(cmp.left_only) + len(cmp.diff_files)
 
     if not Path(b).exists():
         copytree(a, b)
-        return
+        return True
 
-    cmp = dircmp(a, b)
+    cmp = dircmp(a, b, ignore=['.SRCINFO'])
 
+    r = 0
     for c in [cmp] + list(cmp.subdirs.values()):
-        sync(c)
+        r += sync(c)
+
+    return r > 0

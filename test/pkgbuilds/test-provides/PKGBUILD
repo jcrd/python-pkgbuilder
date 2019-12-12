@@ -1,0 +1,10 @@
+pkgname=test-provides
+pkgver=1
+pkgrel=1
+pkgdesc="Test provides"
+arch=('any')
+provides=('test-provides-pkg1' 'test-provides-pkg2')
+
+package() {
+    echo 'Packaging...'
+}
