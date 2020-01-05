@@ -22,6 +22,8 @@ class TestMakeChroot(unittest.TestCase):
         self.builder.chroot.make()
         self.assertTrue(self.builder.chroot.exists())
 
+    def tearDown(self):
+        self.builder.pkgbuild.remove()
 
 class TestBuild(unittest.TestCase):
     def setUp(self):
