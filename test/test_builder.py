@@ -99,7 +99,7 @@ class TestDependencyRestrictionFailure(unittest.TestCase):
             self.builder.build()
             return False
         except LocalDir.ProviderNotFoundError as e:
-            if Restriction('>', '2') in e['version_restrictions']:
+            if Restriction('>', '2') in e.args[0]['version_restrictions']:
                 return True
 
     def tearDown(self):
