@@ -88,7 +88,8 @@ class LocalDir:
                     continue
                 try:
                     pkgbuild = Pkgbuild.new(entry.name, self.builddir,
-                                            self.path, Pkgbuild.Source.Local)
+                                            self.path, Pkgbuild.Source.Local,
+                                            self.makepkg_conf)
                 except Pkgbuild.NoPkgbuildError:
                     continue
                 srcinfo = pkgbuild.srcinfo
@@ -231,7 +232,8 @@ class Pkgbuild:
         self.check_update = True
         self._packagelist = []
         self._srcinfo = {}
-        self._dependencies = {}
+        self._depends = {}
+        self._makedepends = {}
 
     def remove(self):
         """
@@ -319,37 +321,72 @@ class Pkgbuild:
         self._srcinfo = srcinfo
         return self._srcinfo
 
-    @property
-    def dependencies(self):
+    def _get_depends(self, type):
         """
-        Get package dependencies and Restrictions.
+        Get a given type of package dependencies with Restrictions.
 
+        :param type: One of `depends` or `makedepends`
         :return: A dictionary mapping package names to a list of Restriction \
         objects.
         """
-        if self._dependencies:
-            return self._dependencies
-
         srcinfo_deps = []
+        deps = {}
+
         try:
-            srcinfo_deps += self.srcinfo['makedepends']
-            srcinfo_deps += self.srcinfo['depends']
+            srcinfo_deps += self.srcinfo[type]
         except KeyError:
             pass
 
         for pkg in srcinfo_deps:
             name, r = parse_restriction(pkg)
             if r:
-                deps = self._dependencies
                 if name in deps:
                     if r not in deps[name]:
                         deps[name].append(r)
                 else:
                     deps[name] = [r]
             else:
-                self._dependencies[pkg] = []
+                deps[pkg] = []
 
-        return self._dependencies
+        return deps
+
+    @property
+    def depends(self):
+        """
+        Get package dependencies and Restrictions.
+
+        :return: A dictionary mapping package names to a list of Restriction \
+        objects.
+        """
+        if not self._depends:
+            self._depends = self._get_depends('depends')
+
+        return self._depends
+
+    @property
+    def makedepends(self):
+        """
+        Get package build dependencies and Restrictions.
+
+        :return: A dictionary mapping package names to a list of Restriction \
+        objects.
+        """
+        if not self._makedepends:
+            self._makedepends = self._get_depends('makedepends')
+
+        return self._makedepends
+
+    def dependency_type(self, name):
+        """
+        Get type of dependency.
+
+        :param name: The package name
+        :return: One of `depends` or `makedepends`
+        """
+        if name in self.depends:
+            return 'depends'
+        if name in self.makedepends:
+            return 'makedepends'
 
     def dependency_restrictions(self, name):
         """
@@ -358,10 +395,12 @@ class Pkgbuild:
         :param name: The package name
         :return: A list of Restriction objects
         """
-        try:
-            return self.dependencies[name]
-        except KeyError:
-            return []
+        if name in self.depends:
+            return self.depends[name]
+        if name in self.makedepends:
+            return self.makedepends[name]
+
+        return []
 
 
 class LocalPkgbuild(Pkgbuild):

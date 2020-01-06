@@ -27,6 +27,7 @@ class TestLocalPkgbuild(unittest.TestCase):
         self.assertTrue(file.exists())
         self.assertEqual(srcinfo['pkgbase'], 'test1')
         self.assertEqual(srcinfo['depends'], ['test1-dep1'])
+        self.assertEqual(srcinfo['makedepends'], ['test1-makedep1'])
 
     def test_dependency_restrictions(self):
         self.assertFalse(self.pkgbuild.dependency_restrictions('test1-dep1'))

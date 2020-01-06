@@ -41,22 +41,42 @@ class Manifest:
     @property
     def all_packages(self):
         """
-        A set of paths to all built packages (including dependencies).
+        A set of paths to all built packages (including all dependencies).
 
         :return: A set of paths to all built packages
         """
-        return self.packages | self.dependencies
+        return self.packages | self.depends | self.makedepends
 
-    def verify(self):
+    def verify(self, paths=set()):
         """
         Verify that the packages in the manifest exist.
 
-        :return: `True` if all packages exist, `False` otherwise
+        :param paths: A set of package paths to verify, defaults to runtime \
+        packages
+        :return: `True` if packages exist, `False` otherwise
         """
-        for p in self.all_packages:
+        for p in paths or self.runtime_packages:
             if not Path(p).exists():
                 return False
         return True
+
+    @property
+    def build_depends(self):
+        """
+        A set of paths to build dependencies, i.e. `depends` and `makedepends`.
+
+        :return: A set of paths to build dependencies
+        """
+        return self.depends | self.makedepends
+
+    @property
+    def runtime_packages(self):
+        """
+        A set of paths to built packages and runtime dependencies.
+
+        :return: A set of paths to built packages and runtime dependencies
+        """
+        return self.packages | self.depends
 
     def save(self):
         """
@@ -65,7 +85,8 @@ class Manifest:
         d = {
             'timestamp': time.time(),
             'packages': list(self.packages),
-            'dependencies': list(self.dependencies),
+            'depends': list(self.depends),
+            'makedepends': list(self.makedepends),
         }
         with open(self.filepath, 'w') as f:
             json.dump(d, f)
@@ -75,7 +96,8 @@ class Manifest:
         Load the manifest file and populate the manifest's packages and
         dependencies properties.
 
-        :return: A dictionary with keys: timestamp, packages, dependencies
+        :return: A dictionary with keys: timestamp, packages, depends, \
+        makedepends
         """
         if not self.exists():
             return {}
@@ -83,7 +105,8 @@ class Manifest:
             j = json.load(f)
             try:
                 self.packages = set(j['packages'])
-                self.dependencies = set(j['dependencies'])
+                self.depends = set(j['depends'])
+                self.makedepends = set(j['makedepends'])
             except KeyError as e:
                 log.warning('Found malformed manifest: {}'.format(e))
                 return {}
@@ -95,7 +118,8 @@ class Manifest:
         Remove all packages and dependencies from manifest.
         """
         self.packages = set()
-        self.dependencies = set()
+        self.depends = set()
+        self.makedepends = set()
 
     def install(self, reinstall=False, pacman_conf=None, sysroot=None,
                 confirm=False):
@@ -121,9 +145,9 @@ class Manifest:
         def install(cmd):
             write_stdin(cmd, confirm and [] or repeat('y\n'))
 
-        if self.dependencies:
+        if self.depends:
             deps = cmd + ['--asdeps']
-            for d in self.dependencies:
+            for d in self.depends:
                 deps.append(d)
             install(deps)
         for p in self.packages:
@@ -184,7 +208,7 @@ class Builder(Manifest):
 
         :param rebuild: Build packages even if they exist
         :param iter: The iteration number
-        :return: A set of paths to all built packages
+        :return: A set of paths to built runtime packages
         """
         if iter == 1:
             if rebuild:
@@ -192,31 +216,36 @@ class Builder(Manifest):
             else:
                 if self.load() and self.verify():
                     log.info('%s: Already built', self.name)
-                    return self.all_packages
+                    return self.runtime_packages
                 else:
                     self.reset()
 
         log.info('%s: Building... [pass %d]', self.name, iter)
         r, stdout, stderr = self.chroot.makepkg(self.pkgbuild,
-                                                self.dependencies)
+                                                self.build_depends)
 
         if r == 0:
             self.packages |= set(self.pkgbuild.packagelist)
             if self.verify():
                 self.save()
-                return self.all_packages
+                return self.runtime_packages
         elif iter == 1:
             for line in stdout.splitlines():
                 f = line.split(": ")
                 if f[0] == 'error' and f[1] == 'target not found':
                     dep, _ = parse_restriction(f[2])
-                    log.info('%s: Missing dependency: %s', self.name, dep)
+                    type = self.pkgbuild.dependency_type(dep)
+                    log.info('%s: Missing %s: %s', self.name, type, dep)
                     rs = self.pkgbuild.dependency_restrictions(dep)
                     b = Builder(dep, self.pacman_conf, self.makepkg_conf,
                                 self.builddir, self.chrootdir, self.localdir,
                                 restrictions=rs)
-                    self.dependencies |= b._build(rebuild)
-            if self.dependencies:
+                    b._build(rebuild)
+                    if type == 'depends':
+                        self.depends |= set(b.packages)
+                    if type == 'makedepends':
+                        self.makedepends |= set(b.packages)
+            if self.build_depends:
                 return self._build(rebuild, iter + 1)
 
         return set()
@@ -228,7 +257,7 @@ class Builder(Manifest):
         :param rebuild: Build packages even if they exist
         :return: A list of paths to all built packages
         """
-        return list(self._build(rebuild=rebuild))
+        return list(self._build(rebuild))
 
     def install(self, reinstall=False, sysroot=None, confirm=False):
         """
@@ -240,7 +269,7 @@ class Builder(Manifest):
         :param confirm: Prompt to install if `True`, defaults to `False`
         :return: A list of paths to all built packages
         """
-        if not self.all_packages:
+        if not self.runtime_packages:
             self.build()
         super().install(reinstall, self.pacman_conf, sysroot, confirm)
-        return self.all_packages
+        return self.runtime_packages

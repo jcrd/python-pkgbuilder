@@ -1,9 +1,10 @@
 pkgname=test1
 pkgver=1
 pkgrel=1
-pkgdesc="Test single dependency"
+pkgdesc="Test dependencies"
 arch=('any')
 depends=('test1-dep1')
+makedepends=('test1-makedep1')
 
 package() {
     echo 'Packaging...'

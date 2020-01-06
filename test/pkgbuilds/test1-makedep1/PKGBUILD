@@ -1,0 +1,9 @@
+pkgname=test1-makedep1
+pkgver=1
+pkgrel=1
+pkgdesc="A build dependency"
+arch=('any')
+
+package() {
+    echo 'Packaging...'
+}
