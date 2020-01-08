@@ -1,5 +1,6 @@
 # This project is licensed under the MIT License.
 
+from pathlib import Path
 import argparse
 import os
 import sys
@@ -21,22 +22,22 @@ def die(e):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('names', nargs='*', default=[os.getcwd()],
-                   help='package names')
+    p.add_argument('name', nargs='*', help='package name')
     p.add_argument('-C', '--pacman-config', default='/etc/pacman.conf',
                    help='path to pacman config file')
     p.add_argument('-M', '--makepkg-config', default='/etc/makepkg.conf',
                    help='path to makepkg config file')
     p.add_argument('-b', '--builddir', default='/var/cache/pkgbuilder',
                    help='path to package build directory')
-    p.add_argument('-r', '--chrootdir', default='/var/lib/pkgbuilder',
+    p.add_argument('-c', '--chrootdir', default='/var/lib/pkgbuilder',
                    help='path to chroot directory')
-    p.add_argument('-d', '--pkgbuilds', default='..',
+    p.add_argument('-d', '--pkgbuilds',
                    help='path to directory of local PKGBUILDs')
     p.add_argument('-i', '--install', action='store_true',
                    help='install packages')
     p.add_argument('-I', '--reinstall', action='store_true',
                    help='reinstall packages')
+    p.add_argument('-r', '--repo', help='install package via local repo')
     p.add_argument('-B', '--rebuild', action='store_true',
                    help='build packages even if they exists')
     p.add_argument('-R', '--remove', action='store_true',
@@ -45,12 +46,28 @@ def main():
                    help='search for packages in the AUR only')
 
     args = p.parse_args()
+    cwd = Path(os.getcwd())
 
-    for name in args.names:
+    if not args.pkgbuilds:
+        if args.name and args.name[0] != '.':
+            args.pkgbuilds = cwd
+        else:
+            args.pkgbuilds = cwd.parent
+
+    if not args.name:
+        args.name = [cwd.name]
+
+    for name in args.name:
+        try:
+            n = Path(name).resolve(True)
+            if n == cwd:
+                name = cwd.name
+        except FileNotFoundError:
+            pass
         try:
             b = Builder(name, args.pacman_config, args.makepkg_config,
                         args.builddir, args.chrootdir, args.pkgbuilds,
-                        args.aur and Pkgbuild.Source.Aur or None)
+                        args.aur if Pkgbuild.Source.Aur else None)
         except Pkgbuild.NoPkgbuildError as e:
             die(e)
         if args.remove:
@@ -61,7 +78,7 @@ def main():
         except Pkgbuild.SourceNotFoundError as e:
             die(e)
         if args.install or args.reinstall:
-            b.install(args.reinstall)
+            b.install(args.reinstall, repo=args.repo)
 
 
 if __name__ == '__main__':

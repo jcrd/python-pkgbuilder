@@ -31,7 +31,8 @@ This can be achieved by:
 
 ```
 usage: pkgbuilder [-h] [-C PACMAN_CONFIG] [-M MAKEPKG_CONFIG] [-b BUILDDIR]
-                  [-r CHROOTDIR] [-d PKGBUILDS] [-i] [-B] [-R] [-a]
+                  [-c CHROOTDIR] [-d PKGBUILDS] [-i] [-I] [-r REPO] [-B] [-R]
+                  [-a]
                   [names [names ...]]
 
 positional arguments:
@@ -45,11 +46,13 @@ optional arguments:
                         path to makepkg config file
   -b BUILDDIR, --builddir BUILDDIR
                         path to package build directory
-  -r CHROOTDIR, --chrootdir CHROOTDIR
+  -c CHROOTDIR, --chrootdir CHROOTDIR
                         path to chroot directory
   -d PKGBUILDS, --pkgbuilds PKGBUILDS
                         path to directory of local PKGBUILDs
   -i, --install         install packages
+  -I, --reinstall       reinstall packages
+  -r REPO, --repo REPO  install package via local repo
   -B, --rebuild         build packages even if they exists
   -R, --remove          remove package build directories
   -a, --aur             search for packages in the AUR only

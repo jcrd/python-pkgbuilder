@@ -16,6 +16,8 @@ import asyncio
 import os
 import subprocess
 
+default_pacman_conf = '/etc/pacman.conf'
+
 
 class CmdLogger:
     """

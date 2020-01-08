@@ -15,18 +15,32 @@ import time
 
 from .chroot import Chroot
 from .pkgbuild import Pkgbuild, LocalDir, parse_restriction
-from .utils import write_stdin
+from .repo import get_repo
+from .utils import write_stdin, default_pacman_conf
 
 log = logging.getLogger('pkgbuilder')
+
+
+def pacman(args, confirm=False):
+    """
+    Run pacman with given arguments while bypassing prompts.
+
+    :param args: A list of arguments to pacman
+    :param confirm: Allow prompts if `True`, defaults to `False`
+    """
+    write_stdin(['sudo', 'pacman', *args], confirm and [] or repeat('y\n'))
 
 
 class Manifest:
     """
     The build manifest records built packages and dependencies.
 
+    :param pkgname: Name of package
     :param pkgbuilddir: Path to PKGBUILD directory
     """
-    def __init__(self, pkgbuilddir):
+    def __init__(self, pkgname, pkgbuilddir):
+        self.pkgname = pkgname
+        self.pkgbuilddir = pkgbuilddir
         self.filepath = Path(pkgbuilddir, 'build.json')
         self.reset()
 
@@ -83,6 +97,7 @@ class Manifest:
         Save the manifest file.
         """
         d = {
+            'name': self.pkgname,
             'timestamp': time.time(),
             'packages': list(self.packages),
             'depends': list(self.depends),
@@ -96,7 +111,7 @@ class Manifest:
         Load the manifest file and populate the manifest's packages and
         dependencies properties.
 
-        :return: A dictionary with keys: timestamp, packages, depends, \
+        :return: A dictionary with keys: name, timestamp, packages, depends, \
         makedepends
         """
         if not self.exists():
@@ -104,6 +119,7 @@ class Manifest:
         with open(self.filepath) as f:
             j = json.load(f)
             try:
+                self.pkgname = j['name']
                 self.packages = set(j['packages'])
                 self.depends = set(j['depends'])
                 self.makedepends = set(j['makedepends'])
@@ -134,25 +150,31 @@ class Manifest:
         :param confirm: Prompt to install if `True`, defaults to `False`
         :raises CalledProcessError: Raised if the pacman command fails
         """
-        cmd = ['sudo', 'pacman', '-U']
+        args = ['-U']
         if not reinstall:
-            cmd += ['--needed']
+            args += ['--needed']
         if pacman_conf:
-            cmd += ['--config', pacman_conf]
+            args += ['--config', pacman_conf]
         if sysroot:
-            cmd += ['--sysroot', sysroot]
-
-        def install(cmd):
-            write_stdin(cmd, confirm and [] or repeat('y\n'))
+            args += ['--sysroot', sysroot]
 
         if self.depends:
-            deps = cmd + ['--asdeps']
+            deps = args + ['--asdeps']
             for d in self.depends:
                 deps.append(d)
-            install(deps)
+            pacman(deps, confirm)
         for p in self.packages:
-            cmd.append(p)
-        install(cmd)
+            args.append(p)
+        pacman(args, confirm)
+
+    def repo_add(self, repo, pacman_conf=default_pacman_conf):
+        """
+        Add packages described by manifest to a local repository.
+
+        :param repo: Name of or path to repository
+        :param pacman_conf: Path to pacman configuration file
+        """
+        get_repo(repo).add(self)
 
 
 class Builder(Manifest):
@@ -174,7 +196,7 @@ class Builder(Manifest):
     """
     def __init__(self,
                  name,
-                 pacman_conf='/etc/pacman.conf',
+                 pacman_conf=default_pacman_conf,
                  makepkg_conf='/etc/makepkg.conf',
                  builddir='/var/cache/pkgbuilder',
                  chrootdir='/var/lib/pkgbuilder',
@@ -199,7 +221,7 @@ class Builder(Manifest):
             self.pkgbuild = Pkgbuild.new(name, builddir, localdir, source,
                                          makepkg_conf)
 
-        super().__init__(self.pkgbuild.builddir)
+        super().__init__(name, self.pkgbuild.builddir)
 
     def _build(self, rebuild=False, iter=1):
         """
@@ -259,17 +281,22 @@ class Builder(Manifest):
         """
         return list(self._build(rebuild))
 
-    def install(self, reinstall=False, sysroot=None, confirm=False):
+    def install(self, reinstall=False, sysroot=None, repo=None, confirm=False):
         """
         Install built packages, building if necessary.
 
         :param reinstall: Reinstall installed packages if `True`, defaults to \
         `False`
         :param sysroot: An alternative system root
+        :param repo: Name or path to directory of local repository
         :param confirm: Prompt to install if `True`, defaults to `False`
         :return: A list of paths to all built packages
         """
         if not self.runtime_packages:
             self.build()
-        super().install(reinstall, self.pacman_conf, sysroot, confirm)
+        if repo:
+            self.repo_add(repo, self.pacman_conf)
+            pacman(['-Sy', self.name], confirm)
+        else:
+            super().install(reinstall, self.pacman_conf, sysroot, confirm)
         return self.runtime_packages

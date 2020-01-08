@@ -62,6 +62,7 @@ class TestLoadManifest(unittest.TestCase):
     def test_load_manifest(self):
         j = self.builder.load()
         self.assertIsNotNone(j)
+        self.assertEqual(j['name'], 'test1')
         self.assertIn(test1_pkg, pkgnames(j['packages']))
         self.assertIn(test1_dep1_pkg, pkgnames(j['depends']))
         self.assertIn(test1_makedep1_pkg, pkgnames(j['makedepends']))

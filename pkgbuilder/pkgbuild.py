@@ -194,19 +194,12 @@ class Pkgbuild:
         err = {'message': 'Directory does not contain a PKGBUILD file'}
         dir = None
         try:
-            path = Path(name).resolve(True)
-            dir = path
-            name = path.name
+            dir = Path(localdir, name).resolve(True)
+            if not Path(dir, 'PKGBUILD').exists():
+                err['directory'] = str(dir)
+                raise cls.NoPkgbuildError(err)
         except FileNotFoundError:
-            if localdir:
-                dir = Path(localdir, name).resolve()
-        if dir:
-            if dir.exists():
-                if not Path(dir, 'PKGBUILD').exists():
-                    err['directory'] = str(dir)
-                    raise cls.NoPkgbuildError(err)
-            else:
-                dir = None
+            pass
 
         err = {'message': 'Source for {} not found'.format(name)}
 
