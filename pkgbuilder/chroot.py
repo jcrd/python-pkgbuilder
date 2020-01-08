@@ -12,6 +12,8 @@ from shutil import copy2, rmtree
 import logging
 import re
 
+from parse import compile
+
 from .utils import CmdLogger, cwd
 
 log = logging.getLogger('pkgbuilder.chroot')
@@ -32,7 +34,7 @@ class Mirrorlist:
         self.mirrors = []
 
     def __str__(self):
-        return '\n'.join(['Server=' + m for m in self.mirrors])
+        return '\n'.join(['Server = ' + m for m in self.mirrors])
 
     def read(self):
         """
@@ -40,8 +42,12 @@ class Mirrorlist:
 
         :return: List of mirror URLs
         """
+        p = compile('Server = {url}\n')
         with open(self.path) as f:
-            self.mirrors = [re.sub(r'Server\s*=\s*', '', i) for i in f]
+            for line in f:
+                r = p.parse(line)
+                if r:
+                    self.mirrors.append(r.named['url'])
         return self.mirrors
 
     def write(self):

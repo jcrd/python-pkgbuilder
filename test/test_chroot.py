@@ -23,4 +23,4 @@ class TestMirrorlistStr(unittest.TestCase):
 
     def test_save(self):
         self.assertEqual(str(self.mirrorlist),
-                         'Server=line1\nServer=line2')
+                         'Server = line1\nServer = line2')
