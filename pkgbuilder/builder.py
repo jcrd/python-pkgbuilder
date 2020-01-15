@@ -180,7 +180,8 @@ class Manifest:
         :param confirm: Prompt to install if `True`, defaults to `False`
         :raises CalledProcessError: Raised if the pacman command fails
         """
-        get_repo(repo).add(self)
+        # Re-add package to repo when reinstalling.
+        get_repo(repo).add(self, reinstall)
         args = ['-Sy']
         if not reinstall:
             args += ['--needed']

@@ -124,18 +124,23 @@ class LocalRepo:
 
         error()
 
-    def _repo_cmd(self, cmd, args):
-        return run(['repo-{}'.format(cmd), str(self.db), *args]).returncode == 0
+    def _repo_cmd(self, cmd, args, readd=False):
+        c = ['repo-{}'.format(cmd)]
+        if not readd:
+            c += ['-n']
+        return run([*c, str(self.db), *args]).returncode == 0
 
-    def add(self, manifest):
+    def add(self, manifest, readd=False):
         """
         Add a built package to the repository.
 
         :param manifest: A Manifest object describing the built package
+        :param readd: Re-add the package to the repository if it exists when \
+        `True`, defaults to `False`
         :return: `True` if the `repo-add` command succeeded, `False` otherwise
         """
         if not manifest.exists():
             return False
         for pkg in manifest.runtime_packages:
             copy2(Path(manifest.pkgbuilddir, pkg), self.path)
-        return self._repo_cmd('add', manifest.runtime_packages)
+        return self._repo_cmd('add', manifest.runtime_packages, readd)
