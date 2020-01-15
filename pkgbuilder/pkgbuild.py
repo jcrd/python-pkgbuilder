@@ -8,7 +8,7 @@
 """
 
 from collections import namedtuple
-from enum import Flag, auto
+from enum import Enum, auto
 from pathlib import Path
 from shutil import rmtree
 from subprocess import run
@@ -167,9 +167,9 @@ class Pkgbuild:
         """
         pass
 
-    class Source(Flag):
+    class Source(Enum):
         """
-        Flags for local or AUR sources.
+        Enumeration for local or AUR sources.
         """
         Local = auto()
         Aur = auto()
