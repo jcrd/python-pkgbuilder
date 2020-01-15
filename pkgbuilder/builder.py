@@ -168,15 +168,25 @@ class Manifest:
             args.append(p)
         pacman(args, confirm)
 
-    def repo_add(self, repo, pacman_conf=default_pacman_conf):
+    def repo_install(self, repo, reinstall=False, pacman_conf=None,
+                     confirm=False):
         """
         Add packages described by manifest to a local repository.
 
         :param repo: Name of or path to repository
+        :param reinstall: Reinstall installed packages if `True`, defaults to \
+        `False`
         :param pacman_conf: Path to pacman configuration file
+        :param confirm: Prompt to install if `True`, defaults to `False`
+        :raises CalledProcessError: Raised if the pacman command fails
         """
         get_repo(repo).add(self)
-
+        args = ['-Sy']
+        if not reinstall:
+            args += ['--needed']
+        if pacman_conf:
+            args += ['--config', pacman_conf]
+        pacman(args + [self.name], confirm)
 
 class Builder(Manifest):
     """
@@ -309,8 +319,7 @@ class Builder(Manifest):
         if not self.runtime_packages:
             self.build()
         if repo:
-            self.repo_add(repo, self.pacman_conf)
-            pacman(['-Sy', self.name], confirm)
+            super().repo_install(repo, reinstall, self.pacman_conf, confirm)
         else:
             super().install(reinstall, self.pacman_conf, sysroot, confirm)
         return self.runtime_packages
