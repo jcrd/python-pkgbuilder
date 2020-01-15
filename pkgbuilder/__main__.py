@@ -38,8 +38,9 @@ def main():
     p.add_argument('-I', '--reinstall', action='store_true',
                    help='reinstall packages')
     p.add_argument('-r', '--repo', help='install package via local repo')
-    p.add_argument('-B', '--rebuild', action='store_true',
-                   help='build packages even if they exists')
+    p.add_argument('-B', '--rebuild', action='count', default=0,
+                   help='build packages even if they exists (pass twice to \
+                   rebuild dependencies)')
     p.add_argument('-R', '--remove', action='store_true',
                    help='remove package build directories')
     p.add_argument('-a', '--aur', action='store_true',

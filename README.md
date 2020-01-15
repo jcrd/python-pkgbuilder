@@ -33,10 +33,10 @@ This can be achieved by:
 usage: pkgbuilder [-h] [-C PACMAN_CONFIG] [-M MAKEPKG_CONFIG] [-b BUILDDIR]
                   [-c CHROOTDIR] [-d PKGBUILDS] [-i] [-I] [-r REPO] [-B] [-R]
                   [-a]
-                  [names [names ...]]
+                  [name [name ...]]
 
 positional arguments:
-  names                 package names
+  name                  package name
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -53,7 +53,8 @@ optional arguments:
   -i, --install         install packages
   -I, --reinstall       reinstall packages
   -r REPO, --repo REPO  install package via local repo
-  -B, --rebuild         build packages even if they exists
+  -B, --rebuild         build packages even if they exists (pass twice to
+                        rebuild dependencies)
   -R, --remove          remove package build directories
   -a, --aur             search for packages in the AUR only
 ```

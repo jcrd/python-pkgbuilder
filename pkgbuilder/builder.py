@@ -7,6 +7,7 @@
 .. moduleauthor:: James Reed <jcrd@tuta.io>
 """
 
+from enum import IntEnum
 from pathlib import Path
 from itertools import repeat
 import json
@@ -194,6 +195,14 @@ class Builder(Manifest):
     :raises NoPkgbuildError: Raised when a local directory exists but \
     does not contain a PKGBUILD file
     """
+
+    class Rebuild(IntEnum):
+        """
+        Enumeration to denote rebuilding of a package and its dependencies.
+        """
+        Package = 1
+        All = 2
+
     def __init__(self,
                  name,
                  pacman_conf=default_pacman_conf,
@@ -223,12 +232,14 @@ class Builder(Manifest):
 
         super().__init__(name, self.pkgbuild.builddir)
 
-    def _build(self, rebuild=False, iter=1):
+    def _build(self, rebuild=0, iter=1):
         """
         Recursively build a package. If the initial build fails, build missing
         dependencies before retrying.
 
-        :param rebuild: Build packages even if they exist
+        :param rebuild: Build packages even if they exist. \
+        `Builder.Rebuild.Package` will rebuild only the package, while \
+        `Builder.Rebuild.All` will rebuild the package and all dependencies
         :param iter: The iteration number
         :return: A set of paths to built runtime packages
         """
@@ -262,7 +273,8 @@ class Builder(Manifest):
                     b = Builder(dep, self.pacman_conf, self.makepkg_conf,
                                 self.builddir, self.chrootdir, self.localdir,
                                 restrictions=rs)
-                    b._build(rebuild)
+                    b._build(rebuild if rebuild > Builder.Rebuild.Package else \
+                             False)
                     if type == 'depends':
                         self.depends |= set(b.packages)
                     if type == 'makedepends':
@@ -272,11 +284,13 @@ class Builder(Manifest):
 
         return set()
 
-    def build(self, rebuild=False):
+    def build(self, rebuild=0):
         """
         Build the package.
 
-        :param rebuild: Build packages even if they exist
+        :param rebuild: Build packages even if they exist. \
+        `Builder.Rebuild.Package` will rebuild only the package, while \
+        `Builder.Rebuild.All` will rebuild the package and all dependencies
         :return: A list of paths to all built packages
         """
         return list(self._build(rebuild))
